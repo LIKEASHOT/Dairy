@@ -40,7 +40,6 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 }) => {
   const config = PERIOD_CONFIG[period];
   const [inputText, setInputText] = useState('');
-  // Point 3: Default is EMPTY (未选择标签), not SPFR!
   const [selectedTagId, setSelectedTagId] = useState<string>('');
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -56,7 +55,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
   const currentTag = tags.find((t) => t.id === selectedTagId);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -169,7 +168,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
         </div>
       )}
 
-      {/* Records List (Flexible vertical stretch) */}
+      {/* Records List: Enclosed in neat bordered boxes, perfectly centered vertically */}
       <div className="p-2 space-y-1.5 flex-1 min-h-[60px] overflow-y-auto">
         {records.length === 0 ? (
           <div className="h-full min-h-[40px] flex items-center justify-center text-[11px] text-[#C4B8A5] italic select-none">
@@ -182,7 +181,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
             if (isEditing) {
               return (
-                <div key={rec.id} className="p-2 bg-[#FAF7F2] rounded-lg border border-[#C97B63] text-xs space-y-1.5">
+                <div key={rec.id} className="p-2 bg-[#FAF7F2] rounded-lg border border-[#C97B63] text-xs space-y-1.5 shadow-2xs">
                   <input
                     type="text"
                     value={editingContent}
@@ -227,9 +226,9 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             return (
               <div
                 key={rec.id}
-                className="group relative flex items-start space-x-1.5 p-1.5 rounded-lg hover:bg-[#FAF7F2] border border-transparent hover:border-[#E8DFD1] transition-all text-xs"
+                className="group relative flex items-center space-x-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#E8DFD1] hover:border-[#C97B63]/60 transition-all text-xs shadow-2xs"
               >
-                {/* Tag Pill with custom color */}
+                {/* Tag Pill with custom color: Vertically centered */}
                 {tag && (
                   <span
                     style={{
@@ -237,14 +236,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                       color: tag.textColor || tag.color || '#38332B',
                       borderColor: tag.color + '40',
                     }}
-                    className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-md border tracking-tight"
+                    className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border tracking-tight leading-none inline-flex items-center justify-center"
                   >
                     {tag.name}
                   </span>
                 )}
 
-                {/* Record Content */}
-                <span className="flex-1 text-[#38332B] leading-snug break-words">
+                {/* Record Content: Vertically centered on exact baseline */}
+                <span className="flex-1 text-[#38332B] leading-normal break-words inline-flex items-center">
                   {rec.content}
                 </span>
 
@@ -271,7 +270,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
         )}
       </div>
 
-      {/* Quick Add Form: Fixed layout with whitespace-nowrap and min-w-0 */}
+      {/* Quick Add Form: Removed placeholder text as requested */}
       <form onSubmit={handleAdd} className="p-2 border-t border-[#F0E9DF] bg-[#FAF7F2]/40 rounded-b-xl shrink-0">
         <div className="flex items-center gap-1.5 w-full">
           {/* Tag Selector Button */}
@@ -300,7 +299,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
               <ChevronDown className="w-2.5 h-2.5 text-[#A4A09A] shrink-0" />
             </button>
 
-            {/* Tag Selection Popup: Positioned cleanly, won't get cut off */}
+            {/* Tag Selection Popup: Positioned cleanly */}
             {showTagDropdown && (
               <div
                 className={`absolute left-0 w-36 bg-white rounded-xl shadow-xl border border-[#E8DFD1] py-1.5 z-50 max-h-48 overflow-y-auto ${
@@ -349,14 +348,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             )}
           </div>
 
-          {/* Activity Text Input (min-w-0 prevents flex blowout) */}
+          {/* Activity Text Input: placeholder removed as requested */}
           <input
             ref={inputRef}
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="记录做了什么，回车添加..."
-            className="flex-1 min-w-0 text-xs px-2.5 py-1 bg-white border border-[#E8DFD1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C97B63] focus:border-[#C97B63] placeholder:text-[#C4B8A5] shadow-2xs text-[#38332B]"
+            placeholder=""
+            className="flex-1 min-w-0 text-xs px-2.5 py-1 bg-white border border-[#E8DFD1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C97B63] focus:border-[#C97B63] shadow-2xs text-[#38332B]"
           />
 
           {/* Submit Button */}

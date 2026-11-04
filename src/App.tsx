@@ -14,6 +14,7 @@ import { DiaryModal } from './components/DiaryModal';
 import { ReportDrawer } from './components/ReportDrawer';
 import { TagManagerModal } from './components/TagManagerModal';
 import { SettingsModal } from './components/SettingsModal';
+import { MonthPickerModal } from './components/MonthPickerModal';
 
 export const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Modals
+  const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -318,7 +320,7 @@ export const App: React.FC = () => {
         onPrevWeek={handlePrevWeek}
         onNextWeek={handleNextWeek}
         onToday={handleToday}
-        onSelectDate={handleSelectDate}
+        onOpenMonthPicker={() => setIsMonthPickerOpen(true)}
         onOpenReports={() => setIsReportsOpen(true)}
         onOpenTags={() => setIsTagsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -376,6 +378,14 @@ export const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         config={config}
         onExport={Storage.exportData}
+      />
+
+      {/* Month & Week Picker Modal */}
+      <MonthPickerModal
+        isOpen={isMonthPickerOpen}
+        currentDate={currentDate}
+        onClose={() => setIsMonthPickerOpen(false)}
+        onSelectWeek={(targetDate) => setCurrentDate(targetDate)}
       />
     </div>
   );

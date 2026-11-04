@@ -15,7 +15,7 @@ interface NavbarProps {
   onPrevWeek: () => void;
   onNextWeek: () => void;
   onToday: () => void;
-  onSelectDate: (date: Date) => void;
+  onOpenMonthPicker: () => void;
   onOpenReports: () => void;
   onOpenTags: () => void;
   onOpenSettings: () => void;
@@ -27,7 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onPrevWeek,
   onNextWeek,
   onToday,
-  onSelectDate,
+  onOpenMonthPicker,
   onOpenReports,
   onOpenTags,
   onOpenSettings,
@@ -77,28 +77,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           今天
         </button>
 
-        <div className="flex items-center space-x-1.5 px-3 py-1 bg-white rounded-lg border border-[#E8DFD1] shadow-2xs">
-          <Calendar className="w-3.5 h-3.5 text-[#C97B63]" />
-          <span className="text-xs font-semibold text-[#38332B]">
+        {/* Clickable Month/Week Picker Button */}
+        <button
+          type="button"
+          onClick={onOpenMonthPicker}
+          className="flex items-center space-x-1.5 px-3 py-1 bg-white rounded-lg border border-[#E8DFD1] hover:border-[#C97B63] shadow-2xs transition-all cursor-pointer group"
+          title="点击查看月历与周跳转"
+        >
+          <Calendar className="w-3.5 h-3.5 text-[#C97B63] group-hover:scale-110 transition-transform" />
+          <span className="text-xs font-semibold text-[#38332B] group-hover:text-[#C97B63] transition-colors">
             {startDate && endDate ? formatWeekRange(startDate, endDate) : ''}
           </span>
           <span className="text-[10px] text-[#A4A09A] font-mono bg-[#FAF7F2] px-1.5 py-0.5 rounded border border-[#E8DFD1]/60">
             第 {weekNum} 周
           </span>
-        </div>
-
-        {/* Date Picker Input */}
-        <input
-          type="date"
-          className="w-7 h-7 opacity-0 absolute cursor-pointer"
-          onChange={(e) => {
-            if (e.target.value) {
-              const [y, m, d] = e.target.value.split('-').map(Number);
-              onSelectDate(new Date(y, m - 1, d));
-            }
-          }}
-          title="跳转到指定日期"
-        />
+        </button>
 
         <button
           onClick={onNextWeek}

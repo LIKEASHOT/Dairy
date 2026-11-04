@@ -5,12 +5,11 @@ import {
   Copy,
   Check,
   RefreshCw,
-  Calendar,
   AlertCircle,
   FileText,
   Clock,
 } from 'lucide-react';
-import { Report, DayData, Tag, AppConfig } from '../types';
+import { Report, AppConfig } from '../types';
 
 interface ReportDrawerProps {
   isOpen: boolean;
@@ -50,29 +49,29 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
   const hasApiKey = Boolean(config.deepseekApiKey && config.deepseekApiKey !== 'your_deepseek_api_key_here');
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/30 backdrop-blur-2xs flex justify-end animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl bg-white h-full shadow-2xl border-l border-slate-200 flex flex-col">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-[#2C2723]/30 backdrop-blur-2xs flex justify-end animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl bg-white h-full shadow-2xl border-l border-[#E8DFD1] flex flex-col">
         {/* Drawer Header */}
-        <div className="px-6 py-4 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/70">
+        <div className="px-6 py-4 border-b border-[#E8DFD1] flex items-center justify-between bg-[#FAF7F2]">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 text-white flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-[#C97B63] text-white flex items-center justify-center shadow-xs">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-800">DeepSeek 智能总结</h2>
-              <p className="text-xs text-slate-400">项目导向 · 直白精炼 · 一目了然</p>
+              <h2 className="text-base font-bold text-[#38332B]">DeepSeek 智能总结</h2>
+              <p className="text-xs text-[#A4A09A]">项目导向 · 直白精炼 · 一目了然</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             {/* Tab switch */}
-            <div className="flex bg-slate-200/70 p-0.5 rounded-lg text-xs font-medium">
+            <div className="flex bg-[#F3EBDD] p-0.5 rounded-lg text-xs font-medium border border-[#E8DFD1]">
               <button
                 onClick={() => setActiveTab('current')}
                 className={`px-3 py-1 rounded-md transition-all ${
                   activeTab === 'current'
-                    ? 'bg-white text-indigo-700 shadow-2xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-[#C97B63] shadow-2xs font-semibold'
+                    : 'text-[#847D72] hover:text-[#38332B]'
                 }`}
               >
                 当前总结
@@ -81,8 +80,8 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                 onClick={() => setActiveTab('archive')}
                 className={`px-3 py-1 rounded-md transition-all ${
                   activeTab === 'archive'
-                    ? 'bg-white text-indigo-700 shadow-2xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-[#C97B63] shadow-2xs font-semibold'
+                    : 'text-[#847D72] hover:text-[#38332B]'
                 }`}
               >
                 历史归档 ({allReports.length})
@@ -91,7 +90,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              className="p-1.5 rounded-lg text-[#A4A09A] hover:text-[#38332B] hover:bg-[#F3EBDD] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -100,12 +99,12 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
 
         {/* API Key Warning if not configured */}
         {!hasApiKey && (
-          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start space-x-2 text-xs text-amber-800">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="mx-6 mt-4 p-3 bg-[#FAF5EB] border border-[#E8DFD1] rounded-xl flex items-start space-x-2 text-xs text-[#8C6C26]">
+            <AlertCircle className="w-4 h-4 text-[#D6B16C] shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">尚未在项目根目录 .env 中配置 DeepSeek API Key</p>
-              <p className="text-amber-700 mt-0.5">
-                请打开项目根目录下的 <code className="bg-amber-100/80 px-1 rounded">.env</code> 文件，填入你的 <code className="bg-amber-100/80 px-1 rounded">DEEPSEEK_API_KEY</code> 即可启用自动周报与月报提炼。
+              <p className="font-semibold text-[#8C6C26]">尚未在项目根目录 .env 中配置 DeepSeek API Key</p>
+              <p className="text-[#8C6C26]/80 mt-0.5">
+                请打开项目根目录下的 <code className="bg-white px-1 rounded border border-[#E8DFD1]">.env</code> 文件，填入你的 <code className="bg-white px-1 rounded border border-[#E8DFD1]">DEEPSEEK_API_KEY</code> 即可启用自动周报与月报提炼。
               </p>
             </div>
           </div>
@@ -113,14 +112,14 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
 
         {/* Action Bar for Current Tab */}
         {activeTab === 'current' && (
-          <div className="px-6 py-3 border-b border-slate-100 flex items-center justify-between bg-white text-xs">
+          <div className="px-6 py-3 border-b border-[#F0E9DF] flex items-center justify-between bg-white text-xs">
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setReportType('weekly')}
                 className={`px-2.5 py-1 rounded-lg border font-medium ${
                   reportType === 'weekly'
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-[#FAF0ED] border-[#F0D5CD] text-[#C97B63]'
+                    : 'border-[#E8DFD1] text-[#847D72] hover:bg-[#FAF7F2]'
                 }`}
               >
                 本周周报
@@ -129,8 +128,8 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                 onClick={() => setReportType('monthly')}
                 className={`px-2.5 py-1 rounded-lg border font-medium ${
                   reportType === 'monthly'
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-[#FAF0ED] border-[#F0D5CD] text-[#C97B63]'
+                    : 'border-[#E8DFD1] text-[#847D72] hover:bg-[#FAF7F2]'
                 }`}
               >
                 本月月报
@@ -141,7 +140,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
               <button
                 onClick={() => onGenerateReport(reportType)}
                 disabled={isGenerating}
-                className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium rounded-lg shadow-xs shadow-indigo-200 transition-colors"
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#C97B63] hover:bg-[#B66B54] disabled:bg-[#E8DFD1] text-white font-medium rounded-lg shadow-2xs transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
                 <span>{isGenerating ? 'AI 提炼中...' : activeReport ? '重新生成' : '立即生成'}</span>
@@ -155,9 +154,9 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
           {activeTab === 'archive' ? (
             /* Archive List */
             <div className="space-y-4">
-              <div className="flex space-x-2 overflow-x-auto pb-2 border-b border-slate-100">
+              <div className="flex space-x-2 overflow-x-auto pb-2 border-b border-[#F0E9DF]">
                 {allReports.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-4">暂无历史报告归档</p>
+                  <p className="text-xs text-[#A4A09A] py-4">暂无历史报告归档</p>
                 ) : (
                   allReports.map((rep) => {
                     const isSel = selectedArchiveReport?.id === rep.id;
@@ -167,15 +166,15 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                         onClick={() => setSelectedArchiveReport(rep)}
                         className={`px-3 py-2 rounded-xl text-left border text-xs shrink-0 transition-all ${
                           isSel
-                            ? 'bg-indigo-50 border-indigo-300 text-indigo-800 font-semibold shadow-2xs'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            ? 'bg-[#FAF0ED] border-[#C97B63] text-[#A45842] font-semibold shadow-2xs'
+                            : 'bg-white border-[#E8DFD1] text-[#58544E] hover:bg-[#FAF7F2]'
                         }`}
                       >
                         <div className="flex items-center space-x-1.5">
-                          <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                          <FileText className="w-3.5 h-3.5 text-[#C97B63]" />
                           <span>{rep.title || `${rep.targetDate} ${rep.type === 'weekly' ? '周报' : '月报'}`}</span>
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                        <div className="text-[10px] text-[#A4A09A] mt-1 font-mono">
                           {rep.startDate} ~ {rep.endDate}
                         </div>
                       </button>
@@ -185,20 +184,20 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
               </div>
 
               {selectedArchiveReport && (
-                <div className="bg-slate-50/60 p-5 rounded-2xl border border-slate-200/80">
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                    <span className="text-xs font-semibold text-slate-700 font-mono">
+                <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E8DFD1]">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E8DFD1]">
+                    <span className="text-xs font-semibold text-[#58544E] font-mono">
                       归档时间: {new Date(selectedArchiveReport.createdAt).toLocaleString()}
                     </span>
                     <button
                       onClick={handleCopy}
-                      className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 hover:text-indigo-600 shadow-2xs"
+                      className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-white border border-[#E8DFD1] rounded-lg text-[#38332B] hover:text-[#C97B63] shadow-2xs"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? '已复制' : '复制 Markdown'}</span>
                     </button>
                   </div>
-                  <div className="prose prose-sm max-w-none text-slate-800 whitespace-pre-wrap font-sans text-xs leading-relaxed">
+                  <div className="prose prose-sm max-w-none text-[#38332B] whitespace-pre-wrap font-sans text-xs leading-relaxed">
                     {selectedArchiveReport.content}
                   </div>
                 </div>
@@ -208,38 +207,38 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
             /* Current Report View */
             <div>
               {isGenerating ? (
-                <div className="py-20 flex flex-col items-center justify-center space-y-3 text-slate-400">
-                  <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
-                  <p className="text-xs font-medium text-slate-600">DeepSeek 正在提炼本周期工作生活足迹...</p>
-                  <p className="text-[11px] text-slate-400">分类归纳项目进展 · 提炼日常习惯 · 洞察身心节奏</p>
+                <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[#A4A09A]">
+                  <RefreshCw className="w-8 h-8 animate-spin text-[#C97B63]" />
+                  <p className="text-xs font-medium text-[#38332B]">DeepSeek 正在提炼本周期工作生活足迹...</p>
+                  <p className="text-[11px] text-[#A4A09A]">分类归纳项目进展 · 提炼日常习惯 · 洞察身心节奏</p>
                 </div>
               ) : activeReport ? (
                 <div className="space-y-4">
                   {/* Top report actions */}
-                  <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
-                    <div className="flex items-center space-x-1.5 text-slate-500 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                  <div className="flex items-center justify-between bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD1] text-xs">
+                    <div className="flex items-center space-x-1.5 text-[#847D72] font-mono">
+                      <Clock className="w-3.5 h-3.5 text-[#C97B63]" />
                       <span>生成于 {new Date(activeReport.createdAt).toLocaleString()}</span>
                     </div>
                     <button
                       onClick={handleCopy}
-                      className="flex items-center space-x-1 px-3 py-1 bg-white border border-slate-200/80 hover:border-indigo-300 text-slate-700 hover:text-indigo-600 font-medium rounded-lg shadow-2xs transition-colors"
+                      className="flex items-center space-x-1 px-3 py-1 bg-white border border-[#E8DFD1] hover:border-[#C97B63] text-[#38332B] hover:text-[#C97B63] font-medium rounded-lg shadow-2xs transition-colors"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? '已复制' : '复制 Markdown'}</span>
                     </button>
                   </div>
 
                   {/* Rendered Markdown Content */}
-                  <div className="p-6 bg-slate-50/40 rounded-2xl border border-slate-200/80 text-xs leading-relaxed text-slate-800 font-sans whitespace-pre-wrap select-text">
+                  <div className="p-6 bg-[#FAF7F2]/60 rounded-2xl border border-[#E8DFD1] text-xs leading-relaxed text-[#38332B] font-sans whitespace-pre-wrap select-text">
                     {activeReport.content}
                   </div>
                 </div>
               ) : (
-                <div className="py-20 flex flex-col items-center justify-center space-y-3 text-slate-400">
-                  <Sparkles className="w-8 h-8 text-indigo-300" />
-                  <p className="text-xs font-medium text-slate-600">本周尚未生成总结</p>
-                  <p className="text-[11px] text-slate-400 text-center max-w-sm">
+                <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[#A4A09A]">
+                  <Sparkles className="w-8 h-8 text-[#C97B63]/40" />
+                  <p className="text-xs font-medium text-[#38332B]">本周尚未生成总结</p>
+                  <p className="text-[11px] text-[#A4A09A] text-center max-w-sm">
                     点击右上角「立即生成」，DeepSeek 将根据本周早中晚记录的所有真实事项，一键输出直白精炼的项目周报。
                   </p>
                 </div>

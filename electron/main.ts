@@ -1,25 +1,29 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import * as db from './services/db';
 import { loadEnvConfig, generateReportViaDeepSeek } from './services/deepseek';
 
 let mainWindow: BrowserWindow | null = null;
 
 async function createWindow() {
+  const iconPath = path.join(process.cwd(), 'assets', 'icon.png');
+
   mainWindow = new BrowserWindow({
-    width: 1380,
-    height: 900,
-    minWidth: 1024,
+    width: 1400,
+    height: 920,
+    minWidth: 1040,
     minHeight: 700,
     title: 'Diary',
     titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 16 },
+    trafficLightPosition: { x: 18, y: 18 },
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#FAF7F2',
     show: false,
   });
 
@@ -27,16 +31,24 @@ async function createWindow() {
     mainWindow?.show();
   });
 
-  // Check if running in dev mode
+  // Check if running in dev mode or with dist
   const devUrl = 'http://localhost:5173';
-  if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+  const prodHtml = path.join(__dirname, '../dist/index.html');
+
+  if (process.env.NODE_ENV === 'development') {
     try {
       await mainWindow.loadURL(devUrl);
     } catch {
-      await mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+      if (fs.existsSync(prodHtml)) {
+        await mainWindow.loadFile(prodHtml);
+      }
     }
   } else {
-    await mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    if (fs.existsSync(prodHtml)) {
+      await mainWindow.loadFile(prodHtml);
+    } else {
+      await mainWindow.loadURL(devUrl);
+    }
   }
 }
 
@@ -72,6 +84,14 @@ function registerIpcHandlers() {
 }
 
 app.whenReady().then(async () => {
+  // Set dock icon on macOS
+  if (process.platform === 'darwin') {
+    const iconPng = path.join(process.cwd(), 'assets', 'icon.png');
+    if (fs.existsSync(iconPng) && app.dock) {
+      app.dock.setIcon(iconPng);
+    }
+  }
+
   await db.initDb();
   registerIpcHandlers();
   await createWindow();

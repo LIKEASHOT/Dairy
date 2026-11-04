@@ -14,7 +14,6 @@ import { DiaryModal } from './components/DiaryModal';
 import { ReportDrawer } from './components/ReportDrawer';
 import { TagManagerModal } from './components/TagManagerModal';
 import { SettingsModal } from './components/SettingsModal';
-import { buildDeepSeekPrompt } from './services/deepseek';
 
 export const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -271,7 +270,7 @@ export const App: React.FC = () => {
 
 ### 🎯 核心项目进展
 - **SPFR**：
-  - 梳理工作流并完成核心模块初步搭建
+  - 梳理工作流并完成核心模块搭建
   - 联调核心足迹沉淀机制
 - **GDA**：
   - 跑通基线数据验证流程
@@ -312,7 +311,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100/70 select-none overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-[#FAF7F2] select-none overflow-hidden font-sans">
       {/* Top Navbar */}
       <Navbar
         currentWeekDays={weekDays}

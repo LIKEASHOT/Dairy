@@ -8,6 +8,8 @@ dist/
 dist-electron/
 release/
 build/
+*.app/
+Diary.app/
 .vite/
 
 # Local User Data & Privacy (CRITICAL: NEVER COMMIT PERSONAL DATA)

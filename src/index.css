@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --border: 214 32% 91%;
+  --background: 40 33% 97%;
+  --foreground: 33 14% 20%;
+  --border: 37 32% 86%;
 }
 
 body {
@@ -15,12 +15,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background-color: #FAF7F2;
+  color: #38332B;
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars with warm tones */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -28,15 +30,24 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #DDD3C3;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #C4B8A5;
 }
 
 /* Allow text selection in inputs and diary */
 input, textarea, [contenteditable="true"] {
   user-select: text;
+}
+
+/* Electron drag region helper */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
 }

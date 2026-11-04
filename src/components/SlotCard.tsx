@@ -39,7 +39,8 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 }) => {
   const config = PERIOD_CONFIG[period];
   const [inputText, setInputText] = useState('');
-  const [selectedTagId, setSelectedTagId] = useState<string>(tags[0]?.id || '');
+  // Point 3: Default is EMPTY (未选择标签), not SPFR!
+  const [selectedTagId, setSelectedTagId] = useState<string>('');
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(summaryNote);
@@ -51,21 +52,19 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fallback to first tag if selectedTagId is invalid
-  const currentTag = tags.find((t) => t.id === selectedTagId) || tags[0];
+  const currentTag = tags.find((t) => t.id === selectedTagId);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
-    const tagIdToUse = currentTag ? currentTag.id : '';
-    onAddRecord(date, period, inputText.trim(), tagIdToUse);
+    onAddRecord(date, period, inputText.trim(), selectedTagId);
     setInputText('');
   };
 
   const startEdit = (rec: ActivityRecord) => {
     setEditingRecordId(rec.id);
     setEditingContent(rec.content);
-    setEditingTagId(rec.tagId);
+    setEditingTagId(rec.tagId || '');
   };
 
   const saveEdit = (id: string) => {
@@ -80,22 +79,22 @@ export const SlotCard: React.FC<SlotCardProps> = ({
   const getPeriodIcon = () => {
     switch (period) {
       case 'morning':
-        return <SunMedium className="w-3.5 h-3.5 text-amber-500" />;
+        return <SunMedium className="w-3.5 h-3.5 text-[#D6B16C]" />;
       case 'afternoon':
-        return <Sun className="w-3.5 h-3.5 text-sky-500" />;
+        return <Sun className="w-3.5 h-3.5 text-[#C97B63]" />;
       case 'evening':
-        return <Moon className="w-3.5 h-3.5 text-indigo-500" />;
+        return <Moon className="w-3.5 h-3.5 text-[#777A80]" />;
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow flex flex-col">
+    <div className="bg-white rounded-xl border border-[#E8DFD1] shadow-2xs hover:shadow-xs transition-shadow flex-1 flex flex-col min-h-[145px]">
       {/* Slot Header */}
-      <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
+      <div className="px-3 py-2 border-b border-[#F0E9DF] flex items-center justify-between bg-[#FAF7F2]/60 rounded-t-xl shrink-0">
         <div className="flex items-center space-x-1.5">
           {getPeriodIcon()}
-          <span className="text-xs font-semibold text-slate-700">{config.name}</span>
-          <span className="text-[10px] text-slate-400 font-mono hidden xl:inline">{config.time}</span>
+          <span className="text-xs font-semibold text-[#38332B]">{config.name}</span>
+          <span className="text-[10px] text-[#A4A09A] font-mono hidden xl:inline">{config.time}</span>
         </div>
         <div className="flex items-center space-x-1">
           <button
@@ -103,14 +102,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
               setIsEditingNote(!isEditingNote);
               setNoteText(summaryNote);
             }}
-            className={`p-1 rounded text-slate-400 hover:text-slate-600 transition-colors ${
-              summaryNote ? 'text-indigo-500 bg-indigo-50' : ''
+            className={`p-1 rounded text-[#A4A09A] hover:text-[#38332B] transition-colors ${
+              summaryNote ? 'text-[#C97B63] bg-[#FAF0ED]' : ''
             }`}
             title={summaryNote ? '查看/编辑时段备注' : '添加时段备注'}
           >
             <FileText className="w-3 h-3" />
           </button>
-          <span className="text-[10px] text-slate-400 font-medium px-1.5 py-0.5 rounded-full bg-slate-100">
+          <span className="text-[10px] text-[#847D72] font-mono px-1.5 py-0.5 rounded-full bg-[#F3EBDD]/60 border border-[#E8DFD1]/50">
             {records.length}
           </span>
         </div>
@@ -118,18 +117,18 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
       {/* Optional Period Note */}
       {isEditingNote && (
-        <div className="p-2.5 bg-amber-50/40 border-b border-amber-100/60 text-xs">
+        <div className="p-2.5 bg-[#FAF5EB] border-b border-[#E8DFD1] text-xs shrink-0">
           <textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
             placeholder="写下这时段的整体状态或重点备注..."
             rows={2}
-            className="w-full text-xs p-1.5 bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none"
+            className="w-full text-xs p-1.5 bg-white border border-[#E8DFD1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C97B63] resize-none"
           />
           <div className="flex justify-end space-x-1.5 mt-1">
             <button
               onClick={() => setIsEditingNote(false)}
-              className="px-2 py-0.5 text-[11px] text-slate-500 hover:text-slate-700"
+              className="px-2 py-0.5 text-[11px] text-[#847D72] hover:text-[#38332B]"
             >
               取消
             </button>
@@ -138,7 +137,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                 onSaveSlotNote(date, period, noteText.trim());
                 setIsEditingNote(false);
               }}
-              className="px-2.5 py-0.5 text-[11px] bg-amber-500 text-white font-medium rounded hover:bg-amber-600 shadow-2xs"
+              className="px-2.5 py-0.5 text-[11px] bg-[#C97B63] text-white font-medium rounded hover:bg-[#B66B54] shadow-2xs"
             >
               保存备注
             </button>
@@ -148,15 +147,15 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
       {/* Show saved note badge if not editing */}
       {!isEditingNote && summaryNote && (
-        <div className="px-3 py-1 bg-amber-50/50 border-b border-amber-100/50 text-[11px] text-amber-800/90 italic flex items-center justify-between">
+        <div className="px-3 py-1 bg-[#FAF5EB]/80 border-b border-[#E8DFD1]/60 text-[11px] text-[#8C6C26] italic flex items-center justify-between shrink-0">
           <span className="truncate">💡 {summaryNote}</span>
         </div>
       )}
 
-      {/* Records List (Pure Done-Log: NO checkboxes) */}
-      <div className="p-2 space-y-1.5 flex-1 min-h-[50px] max-h-[220px] overflow-y-auto">
+      {/* Records List (Flexible vertical stretch) */}
+      <div className="p-2 space-y-1.5 flex-1 min-h-[60px] overflow-y-auto">
         {records.length === 0 ? (
-          <div className="h-10 flex items-center justify-center text-[11px] text-slate-300 italic select-none">
+          <div className="h-full min-h-[40px] flex items-center justify-center text-[11px] text-[#C4B8A5] italic select-none">
             暂无记录
           </div>
         ) : (
@@ -166,20 +165,21 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
             if (isEditing) {
               return (
-                <div key={rec.id} className="p-1.5 bg-slate-50 rounded-lg border border-indigo-200 text-xs space-y-1.5">
+                <div key={rec.id} className="p-2 bg-[#FAF7F2] rounded-lg border border-[#C97B63] text-xs space-y-1.5">
                   <input
                     type="text"
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
-                    className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full px-2 py-1 bg-white border border-[#E8DFD1] rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#C97B63]"
                     autoFocus
                   />
                   <div className="flex items-center justify-between">
                     <select
                       value={editingTagId}
                       onChange={(e) => setEditingTagId(e.target.value)}
-                      className="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded"
+                      className="text-[11px] px-1.5 py-0.5 bg-white border border-[#E8DFD1] rounded text-[#38332B]"
                     >
+                      <option value="">(无标签)</option>
                       {tags.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name}
@@ -189,14 +189,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                     <div className="flex items-center space-x-1">
                       <button
                         onClick={() => saveEdit(rec.id)}
-                        className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                        className="p-1 text-[#5C6B50] hover:bg-[#F2F5F0] rounded"
                         title="保存"
                       >
                         <Check className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setEditingRecordId(null)}
-                        className="p-1 text-slate-400 hover:bg-slate-200 rounded"
+                        className="p-1 text-[#A4A09A] hover:bg-[#F3EBDD] rounded"
                         title="取消"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -210,24 +210,24 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             return (
               <div
                 key={rec.id}
-                className="group relative flex items-start space-x-1.5 p-1.5 rounded-lg hover:bg-slate-50/90 border border-transparent hover:border-slate-200/60 transition-all text-xs"
+                className="group relative flex items-start space-x-1.5 p-1.5 rounded-lg hover:bg-[#FAF7F2] border border-transparent hover:border-[#E8DFD1] transition-all text-xs"
               >
                 {/* Tag Pill with custom color */}
                 {tag && (
                   <span
                     style={{
-                      backgroundColor: tag.bgColor || '#F1F5F9',
-                      color: tag.textColor || tag.color || '#334155',
+                      backgroundColor: tag.bgColor || '#F2F5F0',
+                      color: tag.textColor || tag.color || '#38332B',
                       borderColor: tag.color + '40',
                     }}
-                    className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border tracking-tight"
+                    className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-md border tracking-tight"
                   >
                     {tag.name}
                   </span>
                 )}
 
                 {/* Record Content */}
-                <span className="flex-1 text-slate-700 leading-snug break-words">
+                <span className="flex-1 text-[#38332B] leading-snug break-words">
                   {rec.content}
                 </span>
 
@@ -235,14 +235,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-0.5 shrink-0">
                   <button
                     onClick={() => startEdit(rec)}
-                    className="p-1 text-slate-400 hover:text-indigo-600 rounded"
+                    className="p-1 text-[#A4A09A] hover:text-[#C97B63] rounded"
                     title="编辑"
                   >
                     <Edit2 className="w-3 h-3" />
                   </button>
                   <button
                     onClick={() => onDeleteRecord(rec.id)}
-                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                    className="p-1 text-[#A4A09A] hover:text-rose-600 rounded"
                     title="删除"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -255,27 +255,51 @@ export const SlotCard: React.FC<SlotCardProps> = ({
       </div>
 
       {/* Quick Add Form */}
-      <form onSubmit={handleAdd} className="p-2 border-t border-slate-100 bg-slate-50/40 rounded-b-xl">
+      <form onSubmit={handleAdd} className="p-2 border-t border-[#F0E9DF] bg-[#FAF7F2]/40 rounded-b-xl shrink-0">
         <div className="flex items-center space-x-1.5">
-          {/* Tag Selector Pill */}
+          {/* Tag Selector Pill (Defaults to unselected "+ 标签") */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowTagDropdown(!showTagDropdown)}
-              style={{
-                backgroundColor: currentTag?.bgColor || '#EEF2FF',
-                color: currentTag?.textColor || currentTag?.color || '#4338CA',
-              }}
-              className="text-[11px] font-medium px-2 py-1 rounded-lg border border-slate-200/80 flex items-center space-x-1 shrink-0 shadow-2xs hover:brightness-95 transition-all"
-              title="切换当前标签"
+              style={
+                currentTag
+                  ? {
+                      backgroundColor: currentTag.bgColor || '#FAF0ED',
+                      color: currentTag.textColor || currentTag.color || '#A45842',
+                      borderColor: currentTag.color + '50',
+                    }
+                  : {}
+              }
+              className={`text-[11px] font-medium px-2 py-1 rounded-lg border flex items-center space-x-1 shrink-0 shadow-2xs transition-all ${
+                currentTag
+                  ? ''
+                  : 'bg-white border-[#E8DFD1] text-[#847D72] hover:border-[#C97B63] hover:text-[#38332B]'
+              }`}
+              title="切换当前标签 (默认无标签)"
             >
               <TagIcon className="w-2.5 h-2.5" />
-              <span>{currentTag?.name || '标签'}</span>
+              <span>{currentTag ? currentTag.name : '+ 标签'}</span>
             </button>
 
             {/* Tag Selection Popup */}
             {showTagDropdown && (
-              <div className="absolute bottom-full left-0 mb-1 w-32 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-20 max-h-48 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-1 w-36 bg-white rounded-xl shadow-lg border border-[#E8DFD1] py-1 z-20 max-h-48 overflow-y-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTagId('');
+                    setShowTagDropdown(false);
+                    inputRef.current?.focus();
+                  }}
+                  className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[#FAF7F2] flex items-center space-x-1.5 ${
+                    selectedTagId === '' ? 'text-[#C97B63] font-semibold' : 'text-[#847D72]'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full border border-dashed border-[#A4A09A]" />
+                  <span>无标签 (未选择)</span>
+                </button>
+                <div className="my-1 border-t border-[#F0E9DF]" />
                 {tags.map((t) => (
                   <button
                     key={t.id}
@@ -285,7 +309,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                       setShowTagDropdown(false);
                       inputRef.current?.focus();
                     }}
-                    className="w-full text-left px-2.5 py-1 text-xs hover:bg-slate-50 flex items-center space-x-1.5"
+                    className="w-full text-left px-2.5 py-1 text-xs hover:bg-[#FAF7F2] flex items-center space-x-1.5 text-[#38332B]"
                   >
                     <span
                       className="w-2 h-2 rounded-full"
@@ -305,13 +329,13 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="记录做了什么，回车添加..."
-            className="flex-1 text-xs px-2.5 py-1 bg-white border border-slate-200/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-300 shadow-2xs"
+            className="flex-1 text-xs px-2.5 py-1 bg-white border border-[#E8DFD1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C97B63] focus:border-[#C97B63] placeholder:text-[#C4B8A5] shadow-2xs text-[#38332B]"
           />
 
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="p-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white disabled:text-slate-400 transition-colors shadow-2xs"
+            className="p-1 rounded-lg bg-[#C97B63] hover:bg-[#B66B54] disabled:bg-[#E8DFD1] text-white disabled:text-[#A4A09A] transition-colors shadow-2xs"
             title="添加记录"
           >
             <Plus className="w-3.5 h-3.5" />

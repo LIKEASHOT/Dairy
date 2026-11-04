@@ -104,6 +104,20 @@ export async function initDb(): Promise<Database> {
       );
     });
     persistDb();
+  } else {
+    // Migrate legacy default tags if present (e.g. SPFR/GDA -> 工作)
+    try {
+      const spfrCheck = dbInstance.exec("SELECT COUNT(*) FROM tags WHERE name = 'SPFR' OR id = 'tag_spfr'");
+      if ((spfrCheck[0]?.values[0]?.[0] as number) > 0) {
+        dbInstance.run("UPDATE tags SET id = 'tag_work', name = '工作', color = '#C97B63', bgColor = '#FAF0ED', textColor = '#A45842', sortOrder = 1 WHERE id = 'tag_spfr' OR name = 'SPFR'");
+        dbInstance.run("UPDATE records SET tagId = 'tag_work' WHERE tagId = 'tag_spfr'");
+        dbInstance.run("UPDATE records SET tagId = 'tag_work' WHERE tagId = 'tag_gda'");
+        dbInstance.run("DELETE FROM tags WHERE id = 'tag_gda' OR name = 'GDA'");
+        persistDb();
+      }
+    } catch (e) {
+      console.warn('Tag migration warning:', e);
+    }
   }
 
   return dbInstance;

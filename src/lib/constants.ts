@@ -2,8 +2,8 @@ import { MoodOption, Tag, SlotPeriod } from '../types';
 
 export const DEFAULT_TAGS: Tag[] = [
   {
-    id: 'tag_spfr',
-    name: 'SPFR',
+    id: 'tag_work',
+    name: '工作',
     color: '#C97B63', // 陶土橙 (Terracotta)
     bgColor: '#FAF0ED',
     textColor: '#A45842',
@@ -11,8 +11,8 @@ export const DEFAULT_TAGS: Tag[] = [
     sortOrder: 1,
   },
   {
-    id: 'tag_gda',
-    name: 'GDA',
+    id: 'tag_study',
+    name: '学习',
     color: '#9EAD90', // 鼠尾草绿 (Sage Green)
     bgColor: '#F2F5F0',
     textColor: '#526046',
@@ -29,22 +29,13 @@ export const DEFAULT_TAGS: Tag[] = [
     sortOrder: 3,
   },
   {
-    id: 'tag_study',
-    name: '学习',
+    id: 'tag_daily',
+    name: '日常',
     color: '#777A80', // 暗灰 (Slate Charcoal)
     bgColor: '#F1F2F3',
     textColor: '#484B50',
     isDefault: true,
     sortOrder: 4,
-  },
-  {
-    id: 'tag_daily',
-    name: '日常',
-    color: '#A4A09A', // 暖灰 (Warm Gray)
-    bgColor: '#F6F5F3',
-    textColor: '#58544E',
-    isDefault: true,
-    sortOrder: 5,
   },
   {
     id: 'tag_rest',
@@ -53,7 +44,7 @@ export const DEFAULT_TAGS: Tag[] = [
     bgColor: '#F8F2EF',
     textColor: '#7E533F',
     isDefault: true,
-    sortOrder: 6,
+    sortOrder: 5,
   },
 ];
 

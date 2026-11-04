@@ -8,22 +8,22 @@ async function runVerification() {
   console.log(`Loaded ${tags.length} tags:`);
   tags.forEach((t) => console.log(`  - [${t.name}] color: ${t.color}`));
 
-  if (!tags.some((t) => t.name === 'SPFR') || !tags.some((t) => t.name === 'GDA')) {
-    throw new Error('Default project tags SPFR / GDA missing!');
+  if (!tags.some((t) => t.name === '工作') || !tags.some((t) => t.name === '学习')) {
+    throw new Error('Default project tags 工作 / 学习 missing!');
   }
   console.log('✓ Default tags verified successfully');
 
   console.log('\n--- 2. Testing Done-Log Records (Morning, Afternoon, Evening) ---');
   const testDate = '2026-11-04';
-  const spfrTag = tags.find((t) => t.name === 'SPFR')!;
+  const workTag = tags.find((t) => t.name === '工作')!;
   const fitTag = tags.find((t) => t.name === '健身')!;
-  const gdaTag = tags.find((t) => t.name === 'GDA')!;
+  const studyTag = tags.find((t) => t.name === '学习')!;
 
   const rec1 = await addRecord({
     date: testDate,
     period: 'morning',
-    content: '重构并联调 SPFR 鉴权核心链路',
-    tagId: spfrTag.id,
+    content: '重构并联调鉴权核心链路',
+    tagId: workTag.id,
     sortOrder: 1,
   });
   console.log('Added Morning Record:', rec1.content);
@@ -31,8 +31,8 @@ async function runVerification() {
   const rec2 = await addRecord({
     date: testDate,
     period: 'afternoon',
-    content: '跑通 GDA 基线数据实验',
-    tagId: gdaTag.id,
+    content: '跑通基线数据验证实验',
+    tagId: studyTag.id,
     sortOrder: 1,
   });
   console.log('Added Afternoon Record:', rec2.content);
@@ -48,7 +48,7 @@ async function runVerification() {
 
   console.log('\n--- 3. Testing Moods & Diary ---');
   await saveMoods(testDate, ['focus', 'energetic']);
-  await saveDiary(testDate, '今天状态很好，SPFR 关键节点顺利推进一步，晚间力量训练很充实。');
+  await saveDiary(testDate, '今天状态很好，关键节点顺利推进一步，晚间力量训练很充实。');
 
   const dayData = await getDayData(testDate);
   console.log('Retrieved Day Data for', testDate);
@@ -66,7 +66,7 @@ async function runVerification() {
   console.log('\n--- 4. Testing DeepSeek Prompt Construction ---');
   const { system, user } = buildDeepSeekPrompt('weekly', '2026-11-02', '2026-11-08', [dayData], tags);
   console.log('Generated User Prompt length:', user.length);
-  if (!user.includes('SPFR') || !user.includes('GDA') || !user.includes('胸背核心力量训练')) {
+  if (!user.includes('重构并联调鉴权核心链路') || !user.includes('跑通基线数据验证实验') || !user.includes('胸背核心力量训练')) {
     throw new Error('DeepSeek prompt does not contain expected logged activities!');
   }
   console.log('✓ DeepSeek Prompt verified successfully');

@@ -100,7 +100,7 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
                 type="text"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                placeholder="例如: SPFR, GDA, 健身, 读书..."
+                placeholder="例如: 工作, 学习, 健身, 读书..."
                 className="flex-1 text-xs px-3 py-1.5 bg-white border border-[#E8DFD1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C97B63] text-[#38332B]"
               />
               <button

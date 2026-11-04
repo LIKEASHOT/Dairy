@@ -238,14 +238,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                 {/* Record Item: Click to trigger actions, ZERO icons obscuring text */}
                 <div
                   onClick={() => setActiveMenuRecordId(isMenuOpen ? null : rec.id)}
-                  className={`group cursor-pointer flex items-start space-x-2 px-2.5 py-2 rounded-lg bg-white border transition-all text-xs shadow-2xs ${
+                  className={`group cursor-pointer flex items-center space-x-2 px-2.5 py-2 rounded-lg bg-white border transition-all text-xs shadow-2xs ${
                     isMenuOpen
                       ? 'border-[#C97B63] bg-[#FAF0ED]/30 ring-1 ring-[#C97B63]/20'
                       : 'border-[#E8DFD1] hover:border-[#C97B63]/60 hover:bg-[#FAF7F2]'
                   }`}
                   title="点击可编辑或删除"
                 >
-                  {/* Tag Pill: Aligned with the first line of text */}
+                  {/* Tag Pill: Centered vertically within the card box */}
                   {tag && (
                     <span
                       style={{
@@ -253,14 +253,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                         color: tag.textColor || tag.color || '#38332B',
                         borderColor: tag.color + '40',
                       }}
-                      className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border tracking-tight leading-none mt-0.5"
+                      className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border tracking-tight leading-none flex items-center justify-center self-center"
                     >
                       {tag.name}
                     </span>
                   )}
 
-                  {/* Record Content: 100% full width, never blocked by icons */}
-                  <span className="flex-1 text-[#38332B] leading-relaxed break-words">
+                  {/* Record Content: 100% full width, vertically centered */}
+                  <span className="flex-1 text-[#38332B] leading-relaxed break-words self-center">
                     {rec.content}
                   </span>
                 </div>

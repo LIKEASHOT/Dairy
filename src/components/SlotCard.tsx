@@ -40,10 +40,14 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 }) => {
   const config = PERIOD_CONFIG[period];
   const [inputText, setInputText] = useState('');
+  // Point 2: Default is empty (''), and resets to empty after adding!
   const [selectedTagId, setSelectedTagId] = useState<string>('');
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(summaryNote);
+
+  // Point 1: Click record to show action menu instead of hover icons blocking text
+  const [activeMenuRecordId, setActiveMenuRecordId] = useState<string | null>(null);
 
   // Edit item state
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
@@ -52,35 +56,40 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const currentTag = tags.find((t) => t.id === selectedTagId);
 
-  // Close dropdown on click outside
+  // Close dropdown and action menu on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowTagDropdown(false);
       }
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setActiveMenuRecordId(null);
+      }
     }
-    if (showTagDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showTagDropdown]);
+  }, []);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
     onAddRecord(date, period, inputText.trim(), selectedTagId);
     setInputText('');
+    // Point 2: Reset tag back to default (unselected) after adding!
+    setSelectedTagId('');
   };
 
   const startEdit = (rec: ActivityRecord) => {
     setEditingRecordId(rec.id);
     setEditingContent(rec.content);
     setEditingTagId(rec.tagId || '');
+    setActiveMenuRecordId(null);
   };
 
   const saveEdit = (id: string) => {
@@ -168,7 +177,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
         </div>
       )}
 
-      {/* Records List: Enclosed in neat bordered boxes, perfectly centered vertically */}
+      {/* Records List: Point 1 - No hover icons blocking text! Full width for text, click to open actions */}
       <div className="p-2 space-y-1.5 flex-1 min-h-[60px] overflow-y-auto">
         {records.length === 0 ? (
           <div className="h-full min-h-[40px] flex items-center justify-center text-[11px] text-[#C4B8A5] italic select-none">
@@ -177,6 +186,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
         ) : (
           records.map((rec) => {
             const isEditing = editingRecordId === rec.id;
+            const isMenuOpen = activeMenuRecordId === rec.id;
             const tag = tags.find((t) => t.id === rec.tagId) || rec.tag;
 
             if (isEditing) {
@@ -186,7 +196,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
                     type="text"
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
-                    className="w-full px-2 py-1 bg-white border border-[#E8DFD1] rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#C97B63]"
+                    className="w-full px-2 py-1 bg-white border border-[#E8DFD1] rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#C97B63] text-[#38332B]"
                     autoFocus
                   />
                   <div className="flex items-center justify-between">
@@ -224,53 +234,90 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             }
 
             return (
-              <div
-                key={rec.id}
-                className="group relative flex items-center space-x-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#E8DFD1] hover:border-[#C97B63]/60 transition-all text-xs shadow-2xs"
-              >
-                {/* Tag Pill with custom color: Vertically centered */}
-                {tag && (
-                  <span
-                    style={{
-                      backgroundColor: tag.bgColor || '#F2F5F0',
-                      color: tag.textColor || tag.color || '#38332B',
-                      borderColor: tag.color + '40',
-                    }}
-                    className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border tracking-tight leading-none inline-flex items-center justify-center"
-                  >
-                    {tag.name}
+              <div key={rec.id} className="relative">
+                {/* Record Item: Click to trigger actions, ZERO icons obscuring text */}
+                <div
+                  onClick={() => setActiveMenuRecordId(isMenuOpen ? null : rec.id)}
+                  className={`group cursor-pointer flex items-start space-x-2 px-2.5 py-2 rounded-lg bg-white border transition-all text-xs shadow-2xs ${
+                    isMenuOpen
+                      ? 'border-[#C97B63] bg-[#FAF0ED]/30 ring-1 ring-[#C97B63]/20'
+                      : 'border-[#E8DFD1] hover:border-[#C97B63]/60 hover:bg-[#FAF7F2]'
+                  }`}
+                  title="点击可编辑或删除"
+                >
+                  {/* Tag Pill: Aligned with the first line of text */}
+                  {tag && (
+                    <span
+                      style={{
+                        backgroundColor: tag.bgColor || '#F2F5F0',
+                        color: tag.textColor || tag.color || '#38332B',
+                        borderColor: tag.color + '40',
+                      }}
+                      className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border tracking-tight leading-none mt-0.5"
+                    >
+                      {tag.name}
+                    </span>
+                  )}
+
+                  {/* Record Content: 100% full width, never blocked by icons */}
+                  <span className="flex-1 text-[#38332B] leading-relaxed break-words">
+                    {rec.content}
                   </span>
-                )}
-
-                {/* Record Content: Vertically centered on exact baseline */}
-                <span className="flex-1 text-[#38332B] leading-normal break-words inline-flex items-center">
-                  {rec.content}
-                </span>
-
-                {/* Actions on hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-0.5 shrink-0">
-                  <button
-                    onClick={() => startEdit(rec)}
-                    className="p-1 text-[#A4A09A] hover:text-[#C97B63] rounded"
-                    title="编辑"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteRecord(rec.id)}
-                    className="p-1 text-[#A4A09A] hover:text-rose-600 rounded"
-                    title="删除"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
                 </div>
+
+                {/* Popover Action Menu: Appears only on click */}
+                {isMenuOpen && (
+                  <div
+                    ref={actionMenuRef}
+                    className="absolute right-2 top-full mt-1 bg-white rounded-xl shadow-xl border border-[#E8DFD1] py-1 px-1 z-30 flex items-center space-x-1 animate-in fade-in zoom-in-95 duration-100"
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEdit(rec);
+                      }}
+                      className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[#58544E] hover:text-[#C97B63] hover:bg-[#FAF0ED] transition-colors"
+                    >
+                      <Edit2 className="w-3 h-3 text-[#C97B63]" />
+                      <span>编辑</span>
+                    </button>
+
+                    <div className="w-[1px] h-3.5 bg-[#E8DFD1]" />
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteRecord(rec.id);
+                        setActiveMenuRecordId(null);
+                      }}
+                      className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[#A4A09A] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3 text-rose-500" />
+                      <span>删除</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuRecordId(null);
+                      }}
+                      className="p-1 rounded-lg text-[#A4A09A] hover:text-[#38332B] hover:bg-[#F3EBDD] transition-colors"
+                      title="关闭"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })
         )}
       </div>
 
-      {/* Quick Add Form: Removed placeholder text as requested */}
+      {/* Quick Add Form: placeholder removed */}
       <form onSubmit={handleAdd} className="p-2 border-t border-[#F0E9DF] bg-[#FAF7F2]/40 rounded-b-xl shrink-0">
         <div className="flex items-center gap-1.5 w-full">
           {/* Tag Selector Button */}
@@ -348,7 +395,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
             )}
           </div>
 
-          {/* Activity Text Input: placeholder removed as requested */}
+          {/* Activity Text Input: placeholder removed */}
           <input
             ref={inputRef}
             type="text"

@@ -4,9 +4,12 @@ import fs from 'fs';
 import { AppConfig, DayData, Tag } from '../../src/types';
 import { buildDeepSeekPrompt, requestDeepSeek } from '../../src/services/deepseek';
 
+import { getProjectRoot } from './db';
+
 export function loadEnvConfig(): AppConfig {
-  const envPath = path.join(process.cwd(), '.env');
-  const envExamplePath = path.join(process.cwd(), '.env.example');
+  const rootDir = getProjectRoot();
+  const envPath = path.join(rootDir, '.env');
+  const envExamplePath = path.join(rootDir, '.env.example');
 
   // Auto-create .env from .env.example if missing
   if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {

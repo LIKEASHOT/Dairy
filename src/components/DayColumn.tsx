@@ -1,5 +1,5 @@
-import React from 'react';
-import { BookOpen, Maximize2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { BookOpen, Maximize2, ChevronDown, Smile, X } from 'lucide-react';
 import { DayData, SlotPeriod, Tag } from '../types';
 import { MOOD_OPTIONS } from '../lib/constants';
 import { getWeekdayName, isToday } from '../lib/dateUtils';
@@ -34,6 +34,33 @@ export const DayColumn: React.FC<DayColumnProps> = ({
   const weekday = getWeekdayName(date);
   const monthDay = `${date.getMonth() + 1}月${date.getDate()}日`;
 
+  const [showMoodDropdown, setShowMoodDropdown] = useState(false);
+  const moodDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close mood dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moodDropdownRef.current && !moodDropdownRef.current.contains(event.target as Node)) {
+        setShowMoodDropdown(false);
+      }
+    }
+    if (showMoodDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMoodDropdown]);
+
+  // Current selected single mood
+  const currentMoodId = dayData.moods?.[0] || null;
+  const currentMood = MOOD_OPTIONS.find((m) => m.id === currentMoodId);
+
+  const handleSelectMood = (moodId: string) => {
+    onToggleMood(dateStr, moodId);
+    setShowMoodDropdown(false);
+  };
+
   const totalDayRecords =
     (dayData.slots.morning?.records.length || 0) +
     (dayData.slots.afternoon?.records.length || 0) +
@@ -41,7 +68,7 @@ export const DayColumn: React.FC<DayColumnProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full min-w-[240px] xl:min-w-[260px] flex-1 rounded-2xl border transition-all ${
+      className={`flex flex-col h-full min-w-[245px] xl:min-w-[265px] flex-1 rounded-2xl border transition-all ${
         isCurrentDay
           ? 'bg-[#FDFBF7] border-[#C97B63] ring-1 ring-[#C97B63]/30 shadow-xs'
           : 'bg-[#FAF7F2]/60 border-[#E8DFD1] hover:border-[#D5C9B8]'
@@ -49,7 +76,7 @@ export const DayColumn: React.FC<DayColumnProps> = ({
     >
       {/* Column Header */}
       <div
-        className={`px-3 py-2.5 rounded-t-2xl border-b shrink-0 ${
+        className={`px-3.5 py-2.5 rounded-t-2xl border-b shrink-0 ${
           isCurrentDay
             ? 'bg-gradient-to-b from-[#FAF0ED] to-[#FDFBF7] border-[#F0D5CD]'
             : 'bg-white/70 border-[#F0E9DF]'
@@ -76,33 +103,78 @@ export const DayColumn: React.FC<DayColumnProps> = ({
           </span>
         </div>
 
-        {/* Mood Selector (Multi-selection enabled) */}
-        <div className="mt-2 flex items-center justify-between gap-1 pt-1.5 border-t border-[#F0E9DF]">
-          <span className="text-[10px] text-[#A4A09A] font-medium shrink-0">心情</span>
-          <div className="flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5">
-            {MOOD_OPTIONS.map((mood) => {
-              const isSelected = dayData.moods.includes(mood.id);
-              return (
-                <button
-                  key={mood.id}
-                  onClick={() => onToggleMood(dateStr, mood.id)}
-                  title={`${mood.label} (点击选择/取消)`}
-                  className={`text-xs px-1.5 py-0.5 rounded-md transition-all ${
-                    isSelected
-                      ? 'bg-white border border-[#C97B63] shadow-xs scale-110'
-                      : 'opacity-40 hover:opacity-80 grayscale hover:grayscale-0'
-                  }`}
-                >
-                  {mood.emoji}
-                </button>
-              );
-            })}
-          </div>
+        {/* Mood Selector Dropdown: Point 1 - Click to show list with emoji + text */}
+        <div className="mt-2 pt-1.5 border-t border-[#F0E9DF] flex items-center justify-between relative" ref={moodDropdownRef}>
+          <span className="text-[11px] text-[#847D72] font-medium">心情</span>
+
+          {/* Current Mood Button / Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowMoodDropdown(!showMoodDropdown)}
+            className={`px-2 py-0.5 rounded-lg border text-xs flex items-center space-x-1 transition-all shadow-2xs ${
+              currentMood
+                ? 'bg-white border-[#C97B63]/50 text-[#38332B] font-medium'
+                : 'bg-white/80 border-[#E8DFD1] text-[#A4A09A] hover:border-[#C97B63] hover:text-[#38332B]'
+            }`}
+          >
+            {currentMood ? (
+              <>
+                <span>{currentMood.emoji}</span>
+                <span className="text-[11px] text-[#38332B]">{currentMood.label}</span>
+              </>
+            ) : (
+              <>
+                <Smile className="w-3 h-3 text-[#A4A09A]" />
+                <span className="text-[11px]">选择心情</span>
+              </>
+            )}
+            <ChevronDown className="w-3 h-3 text-[#A4A09A]" />
+          </button>
+
+          {/* Mood Dropdown Menu: Displays Emoji + Text */}
+          {showMoodDropdown && (
+            <div className="absolute right-0 top-full mt-1.5 w-36 bg-white rounded-xl shadow-xl border border-[#E8DFD1] py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-1 text-[10px] font-medium text-[#A4A09A] border-b border-[#F0E9DF] mb-0.5">
+                选择今日心情
+              </div>
+
+              {MOOD_OPTIONS.map((mood) => {
+                const isSelected = currentMoodId === mood.id;
+                return (
+                  <button
+                    key={mood.id}
+                    type="button"
+                    onClick={() => handleSelectMood(mood.id)}
+                    className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#FAF7F2] flex items-center space-x-2 transition-colors ${
+                      isSelected ? 'bg-[#FAF0ED] text-[#C97B63] font-semibold' : 'text-[#38332B]'
+                    }`}
+                  >
+                    <span className="text-sm">{mood.emoji}</span>
+                    <span>{mood.label}</span>
+                  </button>
+                );
+              })}
+
+              {currentMood && (
+                <>
+                  <div className="my-1 border-t border-[#F0E9DF]" />
+                  <button
+                    type="button"
+                    onClick={() => handleSelectMood(currentMood.id)} // Toggles off
+                    className="w-full text-left px-3 py-1 text-[11px] text-[#A4A09A] hover:text-rose-600 hover:bg-[#FAF7F2] flex items-center space-x-1.5"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>清除心情</span>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* 3 Period Cards: Morning, Afternoon, Evening (Stretching to fill available height) */}
-      <div className="p-2 space-y-2 flex-1 flex flex-col min-h-0 overflow-y-auto">
+      <div className="p-2 space-y-2 flex-1 flex flex-col min-h-0 overflow-visible">
         <SlotCard
           date={dateStr}
           period="morning"

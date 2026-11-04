@@ -4,8 +4,16 @@ import path from 'path';
 import { Tag, DayData, ActivityRecord, SlotPeriod, Report } from '../../src/types';
 import { DEFAULT_TAGS } from '../../src/lib/constants';
 
+export function getProjectRoot(): string {
+  const explicit = '/Users/likeashot/Desktop/dairy';
+  if (fs.existsSync(explicit)) return explicit;
+  const fromDirname = path.resolve(__dirname, '..');
+  if (fs.existsSync(path.join(fromDirname, 'package.json'))) return fromDirname;
+  return process.cwd();
+}
+
 let dbInstance: Database | null = null;
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = path.join(getProjectRoot(), 'data');
 const DB_PATH = path.join(DATA_DIR, 'diary.db');
 
 function persistDb() {
@@ -379,7 +387,7 @@ export async function exportData(format: 'json' | 'markdown'): Promise<{ success
   const tags = await getTags();
   const allReports = await getAllReports();
 
-  const backupDir = path.join(process.cwd(), 'backups');
+  const backupDir = path.join(getProjectRoot(), 'backups');
   if (!fs.existsSync(backupDir)) {
     fs.mkdirSync(backupDir, { recursive: true });
   }

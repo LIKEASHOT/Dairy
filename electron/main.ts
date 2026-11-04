@@ -4,10 +4,28 @@ import fs from 'fs';
 import * as db from './services/db';
 import { loadEnvConfig, generateReportViaDeepSeek } from './services/deepseek';
 
+// Global error handlers
+process.on('uncaughtException', (err) => {
+  console.error('[Diary] Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Diary] Unhandled Rejection:', reason);
+});
+
 let mainWindow: BrowserWindow | null = null;
 
+function getAppRoot(): string {
+  const explicit = '/Users/likeashot/Desktop/dairy';
+  if (fs.existsSync(explicit)) return explicit;
+  const fromDirname = path.resolve(__dirname, '..');
+  if (fs.existsSync(path.join(fromDirname, 'package.json'))) return fromDirname;
+  return process.cwd();
+}
+
 async function createWindow() {
-  const iconPath = path.join(process.cwd(), 'assets', 'icon.png');
+  const rootDir = getAppRoot();
+  const iconPath = path.join(rootDir, 'assets', 'icon.png');
+  const preloadPath = path.join(rootDir, 'dist-electron', 'preload.js');
 
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -17,39 +35,34 @@ async function createWindow() {
     title: 'Diary',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 18, y: 18 },
-    icon: iconPath,
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: fs.existsSync(preloadPath) ? preloadPath : path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
     backgroundColor: '#FAF7F2',
-    show: false,
+    show: true, // Show immediately, don't stay hidden!
   });
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
-  });
-
-  // Check if running in dev mode or with dist
+  const prodHtml = path.join(rootDir, 'dist', 'index.html');
   const devUrl = 'http://localhost:5173';
-  const prodHtml = path.join(__dirname, '../dist/index.html');
 
-  if (process.env.NODE_ENV === 'development') {
+  if (fs.existsSync(prodHtml)) {
+    await mainWindow.loadFile(prodHtml);
+  } else {
     try {
       await mainWindow.loadURL(devUrl);
-    } catch {
+    } catch (e) {
+      console.error('Failed to load devUrl, fallback to file:', e);
       if (fs.existsSync(prodHtml)) {
         await mainWindow.loadFile(prodHtml);
       }
     }
-  } else {
-    if (fs.existsSync(prodHtml)) {
-      await mainWindow.loadFile(prodHtml);
-    } else {
-      await mainWindow.loadURL(devUrl);
-    }
   }
+
+  mainWindow.show();
+  mainWindow.focus();
 }
 
 // Register IPC handlers
@@ -84,17 +97,38 @@ function registerIpcHandlers() {
 }
 
 app.whenReady().then(async () => {
+  const rootDir = getAppRoot();
+  try {
+    process.chdir(rootDir);
+  } catch (e) {
+    console.error('Failed to chdir:', e);
+  }
+
   // Set dock icon on macOS
   if (process.platform === 'darwin') {
-    const iconPng = path.join(process.cwd(), 'assets', 'icon.png');
+    const iconPng = path.join(rootDir, 'assets', 'icon.png');
     if (fs.existsSync(iconPng) && app.dock) {
-      app.dock.setIcon(iconPng);
+      try {
+        app.dock.setIcon(iconPng);
+      } catch (e) {
+        console.error('Failed to set dock icon:', e);
+      }
     }
   }
 
-  await db.initDb();
+  try {
+    await db.initDb();
+  } catch (e) {
+    console.error('[Diary] Error initializing database:', e);
+  }
+
   registerIpcHandlers();
-  await createWindow();
+
+  try {
+    await createWindow();
+  } catch (e) {
+    console.error('[Diary] Error creating window:', e);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

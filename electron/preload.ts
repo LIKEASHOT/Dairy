@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Tags
   getTags: (): Promise<Tag[]> => ipcRenderer.invoke('db:getTags'),
   saveTag: (tag: Tag): Promise<Tag> => ipcRenderer.invoke('db:saveTag', tag),
+  reorderTags: (tags: Tag[]): Promise<Tag[]> => ipcRenderer.invoke('db:reorderTags', tags),
   deleteTag: (id: string): Promise<boolean> => ipcRenderer.invoke('db:deleteTag', id),
 
   // Day & Slots

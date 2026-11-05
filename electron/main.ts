@@ -74,6 +74,7 @@ function registerIpcHandlers() {
   // DB: Tags
   ipcMain.handle('db:getTags', async () => db.getTags());
   ipcMain.handle('db:saveTag', async (_, tag) => db.saveTag(tag));
+  ipcMain.handle('db:reorderTags', async (_, tags) => db.reorderTags(tags));
   ipcMain.handle('db:deleteTag', async (_, id) => db.deleteTag(id));
 
   // DB: Days & Slots

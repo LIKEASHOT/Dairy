@@ -242,6 +242,11 @@ export const App: React.FC = () => {
     setTags(updated);
   };
 
+  const handleReorderTags = async (reordered: Tag[]) => {
+    setTags(reordered);
+    await Storage.reorderTags(reordered);
+  };
+
   const handleDeleteTag = async (id: string) => {
     await Storage.deleteTag(id);
     const updated = await Storage.getTags();
@@ -370,6 +375,7 @@ export const App: React.FC = () => {
         onClose={() => setIsTagsOpen(false)}
         tags={tags}
         onSaveTag={handleSaveTag}
+        onReorderTags={handleReorderTags}
         onDeleteTag={handleDeleteTag}
       />
 

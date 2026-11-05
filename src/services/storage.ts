@@ -8,6 +8,7 @@ declare global {
       // Tags
       getTags: () => Promise<Tag[]>;
       saveTag: (tag: Tag) => Promise<Tag>;
+      reorderTags: (tags: Tag[]) => Promise<Tag[]>;
       deleteTag: (id: string) => Promise<boolean>;
 
       // Day & Slots
@@ -69,6 +70,12 @@ class LocalStorageProvider {
     }
     localStorage.setItem(this.TAGS_KEY, JSON.stringify(tags));
     return tag;
+  }
+
+  async reorderTags(orderedTags: Tag[]): Promise<Tag[]> {
+    orderedTags.forEach((t, i) => (t.sortOrder = i + 1));
+    localStorage.setItem(this.TAGS_KEY, JSON.stringify(orderedTags));
+    return orderedTags;
   }
 
   async deleteTag(id: string): Promise<boolean> {
@@ -232,6 +239,11 @@ export const Storage = {
   saveTag: async (tag: Tag): Promise<Tag> => {
     if (window.electronAPI) return window.electronAPI.saveTag(tag);
     return localFallback.saveTag(tag);
+  },
+
+  reorderTags: async (tags: Tag[]): Promise<Tag[]> => {
+    if (window.electronAPI) return window.electronAPI.reorderTags(tags);
+    return localFallback.reorderTags(tags);
   },
 
   deleteTag: async (id: string): Promise<boolean> => {

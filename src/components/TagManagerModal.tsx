@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, Edit2, Check, Tags } from 'lucide-react';
+import { X, Plus, Trash2, Edit2, Check, Tags, ChevronUp, ChevronDown } from 'lucide-react';
 import { Tag } from '../types';
 import { PRESET_COLORS } from '../lib/constants';
 import { generateId } from '../lib/utils';
@@ -10,6 +10,7 @@ interface TagManagerModalProps {
   tags: Tag[];
   onSaveTag: (tag: Tag) => void;
   onDeleteTag: (id: string) => void;
+  onReorderTags?: (tags: Tag[]) => void;
 }
 
 export const TagManagerModal: React.FC<TagManagerModalProps> = ({
@@ -18,6 +19,7 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
   tags,
   onSaveTag,
   onDeleteTag,
+  onReorderTags,
 }) => {
   const [newTagName, setNewTagName] = useState('');
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
@@ -66,6 +68,24 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
     };
     onSaveTag(updatedTag);
     setEditingTagId(null);
+  };
+
+  const handleMove = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= tags.length) return;
+
+    const newTags = [...tags];
+    const [movedTag] = newTags.splice(index, 1);
+    newTags.splice(targetIndex, 0, movedTag);
+
+    const updatedTags = newTags.map((t, idx) => ({
+      ...t,
+      sortOrder: idx + 1,
+    }));
+
+    if (onReorderTags) {
+      onReorderTags(updatedTags);
+    }
   };
 
   return (
@@ -154,7 +174,7 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
           <div className="space-y-2">
             <span className="text-xs font-semibold text-[#38332B]">已有标签库 ({tags.length})</span>
             <div className="space-y-1.5">
-              {tags.map((tag) => {
+              {tags.map((tag, index) => {
                 const isEditing = editingTagId === tag.id;
 
                 if (isEditing) {
@@ -227,17 +247,38 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-0.5">
                       <button
+                        type="button"
+                        onClick={() => handleMove(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-[#A4A09A] hover:text-[#C97B63] hover:bg-[#F3EBDD]/70 disabled:opacity-20 disabled:hover:text-[#A4A09A] disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-md transition-all"
+                        title={index === 0 ? '已在最顶部' : '向上移动'}
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMove(index, 'down')}
+                        disabled={index === tags.length - 1}
+                        className="p-1 text-[#A4A09A] hover:text-[#C97B63] hover:bg-[#F3EBDD]/70 disabled:opacity-20 disabled:hover:text-[#A4A09A] disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-md transition-all"
+                        title={index === tags.length - 1 ? '已在最底部' : '向下移动'}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                      <div className="w-[1px] h-3.5 bg-[#E8DFD1] mx-1" />
+                      <button
+                        type="button"
                         onClick={() => startEdit(tag)}
-                        className="p-1 text-[#A4A09A] hover:text-[#C97B63] rounded"
+                        className="p-1 text-[#A4A09A] hover:text-[#C97B63] hover:bg-[#F3EBDD]/70 rounded-md transition-all"
                         title="编辑标签"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => onDeleteTag(tag.id)}
-                        className="p-1 text-[#A4A09A] hover:text-rose-600 rounded"
+                        className="p-1 text-[#A4A09A] hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all"
                         title="删除标签"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

@@ -148,6 +148,17 @@ export async function saveTag(tag: Tag): Promise<Tag> {
   return tag;
 }
 
+export async function reorderTags(orderedTags: Tag[]): Promise<Tag[]> {
+  const db = await initDb();
+  orderedTags.forEach((tag, idx) => {
+    const order = idx + 1;
+    tag.sortOrder = order;
+    db.run(`UPDATE tags SET sortOrder = ? WHERE id = ?`, [order, tag.id]);
+  });
+  persistDb();
+  return orderedTags;
+}
+
 export async function deleteTag(id: string): Promise<boolean> {
   const db = await initDb();
   db.run("DELETE FROM tags WHERE id = ?", [id]);

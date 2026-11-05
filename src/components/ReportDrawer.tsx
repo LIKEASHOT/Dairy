@@ -10,6 +10,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Report, AppConfig } from '../types';
+import { formatBeijingDateTime } from '../lib/dateUtils';
 
 interface ReportDrawerProps {
   isOpen: boolean;
@@ -187,7 +188,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                 <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E8DFD1]">
                   <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E8DFD1]">
                     <span className="text-xs font-semibold text-[#58544E] font-mono">
-                      归档时间: {new Date(selectedArchiveReport.createdAt).toLocaleString()}
+                      归档时间: {formatBeijingDateTime(selectedArchiveReport.createdAt)}
                     </span>
                     <button
                       onClick={handleCopy}
@@ -218,7 +219,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                   <div className="flex items-center justify-between bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD1] text-xs">
                     <div className="flex items-center space-x-1.5 text-[#847D72] font-mono">
                       <Clock className="w-3.5 h-3.5 text-[#C97B63]" />
-                      <span>生成于 {new Date(activeReport.createdAt).toLocaleString()}</span>
+                      <span>生成于 {formatBeijingDateTime(activeReport.createdAt)}</span>
                     </div>
                     <button
                       onClick={handleCopy}

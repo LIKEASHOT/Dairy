@@ -7,6 +7,7 @@ import {
   addWeeks,
   getWeekIdentifier,
   getMonthIdentifier,
+  getBeijingNow,
 } from './lib/dateUtils';
 import { Navbar } from './components/Navbar';
 import { WeekView } from './components/WeekView';
@@ -17,7 +18,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { MonthPickerModal } from './components/MonthPickerModal';
 
 export const App: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(() => getBeijingNow());
   const [weekDays, setWeekDays] = useState<Date[]>([]);
   const [daysData, setDaysData] = useState<Record<string, DayData>>({});
   const [tags, setTags] = useState<Tag[]>([]);
@@ -90,7 +91,7 @@ export const App: React.FC = () => {
   // Navigation handlers
   const handlePrevWeek = () => setCurrentDate((prev) => addWeeks(prev, -1));
   const handleNextWeek = () => setCurrentDate((prev) => addWeeks(prev, 1));
-  const handleToday = () => setCurrentDate(new Date());
+  const handleToday = () => setCurrentDate(getBeijingNow());
   const handleSelectDate = (d: Date) => setCurrentDate(d);
 
   // Record CRUD

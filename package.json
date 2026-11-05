@@ -6,10 +6,10 @@
   "license": "MIT",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "TZ=Asia/Shanghai vite",
     "build": "tsc && vite build && npm run build:electron",
     "build:electron": "esbuild electron/main.ts electron/preload.ts --outdir=dist-electron --bundle --platform=node --external:electron --external:sql.js --format=cjs",
-    "electron": "wait-on http://localhost:5173 && electron .",
+    "electron": "wait-on http://localhost:5173 && TZ=Asia/Shanghai electron .",
     "start": "concurrently -k \"npm run dev\" \"npm run electron\"",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder"

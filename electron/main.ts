@@ -1,3 +1,7 @@
+// Strictly isolate Diary's process timezone to Beijing Time (Asia/Shanghai, UTC+8)
+// This only affects Diary's local process tree and never affects host OS or other applications.
+process.env.TZ = 'Asia/Shanghai';
+
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';

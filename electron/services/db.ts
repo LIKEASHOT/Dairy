@@ -426,7 +426,7 @@ export async function exportData(format: 'json' | 'markdown'): Promise<{ success
   } else {
     // Export Markdown
     let md = `# Diary 工作生活足迹导出备份\n\n`;
-    md += `> 导出时间：${new Date().toLocaleString()}\n\n`;
+    md += `> 导出时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n\n`;
     md += `## 1. 项目标签\n\n`;
     tags.forEach((t) => {
       md += `- **${t.name}** (颜色: \`${t.color}\`)\n`;

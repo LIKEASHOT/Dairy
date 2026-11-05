@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, ArrowRight } from 'lucide-react';
-import { getMonday, getWeekNumber, isToday, formatDate } from '../lib/dateUtils';
+import { getMonday, getWeekNumber, isToday, formatDate, getBeijingNow } from '../lib/dateUtils';
 
 interface MonthPickerModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
   const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
   const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
   const jumpToToday = () => {
-    const today = new Date();
+    const today = getBeijingNow();
     setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
     onSelectWeek(today);
     onClose();

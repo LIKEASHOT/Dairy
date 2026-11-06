@@ -74,12 +74,12 @@ export const DayColumn: React.FC<DayColumnProps> = ({
           : 'bg-[#FAF7F2]/60 border-[#E8DFD1] hover:border-[#D5C9B8]'
       }`}
     >
-      {/* Column Header */}
+      {/* Column Header: 跟随在早间上面自然滚动，不吸顶遮挡 */}
       <div
-        className={`sticky top-0 z-20 px-3.5 py-2.5 rounded-t-2xl border-b shrink-0 backdrop-blur-md ${
+        className={`px-3.5 py-2.5 rounded-t-2xl border-b shrink-0 ${
           isCurrentDay
-            ? 'bg-[#FAF0ED]/95 border-[#F0D5CD]'
-            : 'bg-[#FAF7F2]/95 border-[#F0E9DF]'
+            ? 'bg-[#FAF0ED] border-[#F0D5CD]'
+            : 'bg-[#FAF7F2] border-[#F0E9DF]'
         }`}
       >
         <div className="flex items-center justify-between">

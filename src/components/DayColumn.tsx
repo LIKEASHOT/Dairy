@@ -68,7 +68,7 @@ export const DayColumn: React.FC<DayColumnProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full min-w-[245px] xl:min-w-[265px] flex-1 rounded-2xl border transition-all ${
+      className={`flex flex-col min-w-[250px] xl:min-w-[270px] flex-1 rounded-2xl border transition-all ${
         isCurrentDay
           ? 'bg-[#FDFBF7] border-[#C97B63] ring-1 ring-[#C97B63]/30 shadow-xs'
           : 'bg-[#FAF7F2]/60 border-[#E8DFD1] hover:border-[#D5C9B8]'
@@ -76,10 +76,10 @@ export const DayColumn: React.FC<DayColumnProps> = ({
     >
       {/* Column Header */}
       <div
-        className={`px-3.5 py-2.5 rounded-t-2xl border-b shrink-0 ${
+        className={`sticky top-0 z-20 px-3.5 py-2.5 rounded-t-2xl border-b shrink-0 backdrop-blur-md ${
           isCurrentDay
-            ? 'bg-gradient-to-b from-[#FAF0ED] to-[#FDFBF7] border-[#F0D5CD]'
-            : 'bg-white/70 border-[#F0E9DF]'
+            ? 'bg-[#FAF0ED]/95 border-[#F0D5CD]'
+            : 'bg-[#FAF7F2]/95 border-[#F0E9DF]'
         }`}
       >
         <div className="flex items-center justify-between">
@@ -173,8 +173,8 @@ export const DayColumn: React.FC<DayColumnProps> = ({
         </div>
       </div>
 
-      {/* 3 Period Cards: Morning, Afternoon, Evening (Stretching to fill available height) */}
-      <div className="p-2 space-y-2 flex-1 flex flex-col min-h-0 overflow-visible">
+      {/* 3 Period Cards: Morning, Afternoon, Evening (Consistent 270px height) */}
+      <div className="p-2 space-y-2.5 flex flex-col shrink-0">
         <SlotCard
           date={dateStr}
           period="morning"
@@ -213,10 +213,10 @@ export const DayColumn: React.FC<DayColumnProps> = ({
       </div>
 
       {/* Bottom: Daily Diary / Thoughts Section */}
-      <div className="p-2 pt-0 mt-auto shrink-0">
+      <div className="p-2 pt-0.5 pb-2.5 shrink-0">
         <div
           onClick={() => onOpenDiaryModal(dateStr)}
-          className="group cursor-pointer p-2.5 rounded-xl bg-white border border-[#E8DFD1] hover:border-[#C97B63] shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[58px]"
+          className="group cursor-pointer p-2.5 rounded-xl bg-white border border-[#E8DFD1] hover:border-[#C97B63] shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[62px]"
         >
           <div className="flex items-center justify-between text-xs text-[#847D72] mb-1">
             <div className="flex items-center space-x-1 font-medium text-[#38332B]">

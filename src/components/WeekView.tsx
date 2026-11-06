@@ -27,8 +27,8 @@ export const WeekView: React.FC<WeekViewProps> = ({
   onOpenDiaryModal,
 }) => {
   return (
-    <div className="flex-1 h-[calc(100vh-4rem)] overflow-x-auto p-3.5 xl:p-5 flex flex-col">
-      <div className="flex space-x-3 min-w-full h-full pb-1">
+    <div className="flex-1 h-[calc(100vh-4rem)] overflow-auto p-3.5 xl:p-5">
+      <div className="flex space-x-3 min-w-full items-start pb-6">
         {weekDays.map((d) => {
           const dateStr = formatDate(d);
           const dayData = daysData[dateStr] || {

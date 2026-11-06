@@ -113,7 +113,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E8DFD1] shadow-2xs hover:shadow-xs transition-shadow flex-1 flex flex-col min-h-[145px] relative">
+    <div className="bg-white rounded-xl border border-[#E8DFD1] shadow-2xs hover:shadow-xs transition-shadow h-[270px] shrink-0 flex flex-col relative">
       {/* Slot Header */}
       <div className="px-3 py-2 border-b border-[#F0E9DF] flex items-center justify-between bg-[#FAF7F2]/60 rounded-t-xl shrink-0">
         <div className="flex items-center space-x-1.5">
@@ -178,9 +178,9 @@ export const SlotCard: React.FC<SlotCardProps> = ({
       )}
 
       {/* Records List: Point 1 - No hover icons blocking text! Full width for text, click to open actions */}
-      <div className="p-2 space-y-1.5 flex-1 min-h-[60px] overflow-y-auto">
+      <div className="p-2 space-y-1.5 flex-1 min-h-0 overflow-y-auto">
         {records.length === 0 ? (
-          <div className="h-full min-h-[40px] flex items-center justify-center text-[11px] text-[#C4B8A5] italic select-none">
+          <div className="h-full min-h-[60px] flex items-center justify-center text-[11px] text-[#C4B8A5] italic select-none">
             暂无记录
           </div>
         ) : (

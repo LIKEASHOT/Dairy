@@ -7,6 +7,7 @@ import {
   addWeeks,
   getWeekIdentifier,
   getMonthIdentifier,
+  getMonthDateRange,
   getBeijingNow,
 } from './lib/dateUtils';
 import { Navbar } from './components/Navbar';
@@ -26,6 +27,7 @@ export const App: React.FC = () => {
 
   // Reports
   const [currentWeekReport, setCurrentWeekReport] = useState<Report | null>(null);
+  const [currentMonthReport, setCurrentMonthReport] = useState<Report | null>(null);
   const [allReports, setAllReports] = useState<Report[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -70,6 +72,11 @@ export const App: React.FC = () => {
     const weekId = getWeekIdentifier(days[0]);
     const rep = await Storage.getReport('weekly', weekId);
     setCurrentWeekReport(rep);
+
+    // Check month report
+    const monthId = getMonthIdentifier(days[0]);
+    const monthRep = await Storage.getReport('monthly', monthId);
+    setCurrentMonthReport(monthRep);
   }, []);
 
   useEffect(() => {
@@ -257,24 +264,24 @@ export const App: React.FC = () => {
   const handleGenerateReport = async (type: 'weekly' | 'monthly') => {
     setIsGenerating(true);
     try {
-      const startDateStr = formatDate(weekDays[0]);
-      const endDateStr = formatDate(weekDays[6]);
-      const targetDate = type === 'weekly' ? getWeekIdentifier(weekDays[0]) : getMonthIdentifier(weekDays[0]);
+      if (type === 'weekly') {
+        const startDateStr = formatDate(weekDays[0]);
+        const endDateStr = formatDate(weekDays[6]);
+        const targetDate = getWeekIdentifier(weekDays[0]);
+        const daysList: DayData[] = Object.values(daysData);
 
-      let daysList: DayData[] = Object.values(daysData);
-
-      let content = '';
-      if (window.electronAPI) {
-        content = await window.electronAPI.generateDeepSeekReport({
-          type,
-          startDate: startDateStr,
-          endDate: endDateStr,
-          daysData: daysList,
-          tags,
-        });
-      } else {
-        // Fallback demo in browser if no Electron API
-        content = `# 📅 ${type === 'weekly' ? '周报' : '月报'}：${startDateStr} ~ ${endDateStr}
+        let content = '';
+        if (window.electronAPI) {
+          content = await window.electronAPI.generateDeepSeekReport({
+            type: 'weekly',
+            startDate: startDateStr,
+            endDate: endDateStr,
+            daysData: daysList,
+            tags,
+          });
+        } else {
+          // Fallback demo in browser if no Electron API
+          content = `# 📅 周报：${startDateStr} ~ ${endDateStr}
 
 ### 🎯 核心项目进展
 - **工作**：
@@ -293,21 +300,82 @@ export const App: React.FC = () => {
 ### 🚀 下周期重点建议
 - 持续聚焦核心工作项目推进
 - 保持生活与工作平衡`;
+        }
+
+        const newReport: Report = {
+          id: 'rep_w_' + Date.now().toString(36),
+          type: 'weekly',
+          targetDate,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          title: `${targetDate} 精炼周报`,
+          content,
+          createdAt: new Date().toISOString(),
+        };
+
+        await Storage.saveReport(newReport);
+        setCurrentWeekReport(newReport);
+      } else {
+        // Monthly report
+        const refDate = weekDays[0] || currentDate;
+        const monthRange = getMonthDateRange(refDate);
+        const targetDate = getMonthIdentifier(refDate);
+
+        // Fetch DayData for each day of the month
+        const daysList: DayData[] = [];
+        for (const dateStr of monthRange.dateStrings) {
+          if (daysData[dateStr]) {
+            daysList.push(daysData[dateStr]);
+          } else {
+            const dData = await Storage.getDayData(dateStr);
+            daysList.push(dData);
+          }
+        }
+
+        let content = '';
+        if (window.electronAPI) {
+          content = await window.electronAPI.generateDeepSeekReport({
+            type: 'monthly',
+            startDate: monthRange.startDate,
+            endDate: monthRange.endDate,
+            daysData: daysList,
+            tags,
+          });
+        } else {
+          // Fallback demo in browser if no Electron API
+          content = `# 📅 月报：${monthRange.startDate} ~ ${monthRange.endDate}
+
+### 🎯 核心项目进展
+- **工作**：
+  - 全月核心工作模块稳步推进
+  - 交付多个关键里程碑
+- **学习**：
+  - 持续跟进前沿技术，保持阅读
+
+### 💪 习惯与个人成长
+- 全月习惯保持稳定，健康作息
+
+### 🧘 状态与节奏洞察
+- 节奏沉稳，重心聚焦
+
+### 🚀 下周期重点建议
+- 持续保持当前高效推进节奏`;
+        }
+
+        const newReport: Report = {
+          id: 'rep_m_' + Date.now().toString(36),
+          type: 'monthly',
+          targetDate,
+          startDate: monthRange.startDate,
+          endDate: monthRange.endDate,
+          title: `${targetDate} 精炼月报`,
+          content,
+          createdAt: new Date().toISOString(),
+        };
+
+        await Storage.saveReport(newReport);
+        setCurrentMonthReport(newReport);
       }
-
-      const newReport: Report = {
-        id: 'rep_' + Date.now().toString(36),
-        type,
-        targetDate,
-        startDate: startDateStr,
-        endDate: endDateStr,
-        title: `${targetDate} ${type === 'weekly' ? '精炼周报' : '精炼月报'}`,
-        content,
-        createdAt: new Date().toISOString(),
-      };
-
-      await Storage.saveReport(newReport);
-      setCurrentWeekReport(newReport);
 
       const all = await Storage.getAllReports();
       setAllReports(all);
@@ -363,6 +431,7 @@ export const App: React.FC = () => {
         isOpen={isReportsOpen}
         onClose={() => setIsReportsOpen(false)}
         currentWeekReport={currentWeekReport}
+        currentMonthReport={currentMonthReport}
         allReports={allReports}
         isGenerating={isGenerating}
         config={config}

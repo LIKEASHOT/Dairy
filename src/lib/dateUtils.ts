@@ -127,3 +127,21 @@ export function addWeeks(date: Date, weeks: number): Date {
   d.setDate(d.getDate() + weeks * 7);
   return d;
 }
+
+/**
+ * 获取指定日期所在月份的起始日期、结束日期以及整月所有日期的格式化字符串列表 (YYYY-MM-DD)
+ */
+export function getMonthDateRange(d: Date): { startDate: string; endDate: string; dateStrings: string[] } {
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const dateStrings: string[] = [];
+  for (let day = 1; day <= lastDay; day++) {
+    dateStrings.push(formatDate(new Date(year, month, day)));
+  }
+  return {
+    startDate: dateStrings[0],
+    endDate: dateStrings[dateStrings.length - 1],
+    dateStrings,
+  };
+}

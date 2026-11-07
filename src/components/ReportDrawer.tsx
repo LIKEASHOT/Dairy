@@ -18,6 +18,7 @@ interface ReportDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   currentWeekReport: Report | null;
+  currentMonthReport: Report | null;
   allReports: Report[];
   isGenerating: boolean;
   config: AppConfig;
@@ -28,6 +29,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
   isOpen,
   onClose,
   currentWeekReport,
+  currentMonthReport,
   allReports,
   isGenerating,
   config,
@@ -41,7 +43,9 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const activeReport = activeTab === 'current' ? currentWeekReport : (selectedArchiveReport || allReports[0] || null);
+  // Pick report based on selected reportType ('weekly' vs 'monthly')
+  const currentPeriodReport = reportType === 'weekly' ? currentWeekReport : currentMonthReport;
+  const activeReport = activeTab === 'current' ? currentPeriodReport : (selectedArchiveReport || allReports[0] || null);
 
   const handleCopy = () => {
     if (!activeReport) return;
@@ -147,7 +151,13 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                 className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#C97B63] hover:bg-[#B66B54] disabled:bg-[#E8DFD1] text-white font-medium rounded-lg shadow-2xs transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
-                <span>{isGenerating ? 'AI 提炼中...' : activeReport ? '重新生成' : '立即生成'}</span>
+                <span>
+                  {isGenerating
+                    ? 'AI 提炼中...'
+                    : activeReport
+                    ? `重新生成${reportType === 'weekly' ? '周报' : '月报'}`
+                    : `生成${reportType === 'weekly' ? '本周周报' : '本月月报'}`}
+                </span>
               </button>
             </div>
           </div>
@@ -177,6 +187,15 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                         <div className="flex items-center space-x-1.5">
                           <FileText className="w-3.5 h-3.5 text-[#C97B63]" />
                           <span>{rep.title || `${rep.targetDate} ${rep.type === 'weekly' ? '周报' : '月报'}`}</span>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                              rep.type === 'weekly'
+                                ? 'bg-[#FAF0ED] text-[#C97B63]'
+                                : 'bg-[#EBF1E8] text-[#5C6B50]'
+                            }`}
+                          >
+                            {rep.type === 'weekly' ? '周报' : '月报'}
+                          </span>
                         </div>
                         <div className="text-[10px] text-[#A4A09A] mt-1 font-mono">
                           {rep.startDate} ~ {rep.endDate}
@@ -275,9 +294,13 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
               ) : (
                 <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[#A4A09A]">
                   <Sparkles className="w-8 h-8 text-[#C97B63]/40" />
-                  <p className="text-xs font-medium text-[#38332B]">本周尚未生成总结</p>
+                  <p className="text-xs font-medium text-[#38332B]">
+                    {reportType === 'weekly' ? '本周尚未生成周报' : '本月尚未生成月报'}
+                  </p>
                   <p className="text-[11px] text-[#A4A09A] text-center max-w-sm">
-                    点击右上角「立即生成」，DeepSeek 将根据本周早中晚记录的所有真实事项，一键输出直白精炼的项目周报。
+                    {reportType === 'weekly'
+                      ? '点击右上角「生成本周周报」，DeepSeek 将根据本周早中晚记录的所有真实事项，一键输出直白精炼的项目周报。'
+                      : '点击右上角「生成本月月报」，DeepSeek 将根据本月各项目与生活记录的所有真实足迹，一键输出宏观精炼的项目月报。'}
                   </p>
                 </div>
               )}

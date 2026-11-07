@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { net } from 'electron';
 import { AppConfig, DayData, Tag } from '../../src/types';
 import { buildDeepSeekPrompt, requestDeepSeek } from '../../src/services/deepseek';
 
@@ -49,5 +50,6 @@ export async function generateReportViaDeepSeek(params: {
     params.tags
   );
 
-  return requestDeepSeek(config, system, user);
+  const fetchImpl = typeof net !== 'undefined' && typeof net.fetch === 'function' ? (net.fetch as any) : fetch;
+  return requestDeepSeek(config, system, user, fetchImpl);
 }

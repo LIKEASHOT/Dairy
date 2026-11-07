@@ -114,7 +114,8 @@ export function buildDeepSeekPrompt(
 export async function requestDeepSeek(
   config: AppConfig,
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  fetchFn: typeof fetch = fetch
 ): Promise<string> {
   const apiKey = config.deepseekApiKey;
   if (!apiKey) {
@@ -124,33 +125,50 @@ export async function requestDeepSeek(
   const baseUrl = (config.deepseekBaseUrl || 'https://api.deepseek.com').replace(/\/+$/, '');
   const model = config.deepseekModel || 'deepseek-chat';
 
-  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.3,
-      stream: false,
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`DeepSeek API 请求失败 (${response.status}): ${errorText}`);
+  try {
+    const response = await fetchFn(`${baseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.3,
+        stream: false,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`DeepSeek API 请求失败 (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('DeepSeek API 未返回有效内容');
+    }
+
+    return content;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('DeepSeek API 请求超时 (60s)。如果开启了 VPN/代理，请检查代理节点网络是否通畅。');
+    }
+    const causeMsg = err.cause ? ` (${err.cause.message || err.cause})` : '';
+    throw new Error(
+      `DeepSeek API 网络连接失败: ${err.message}${causeMsg}。\n💡 建议排查：\n1. 如果开启了 VPN/代理软件（如 Clash、Surge、梯子等），建议将 api.deepseek.com 加入「直连 (DIRECT)」白名单规则，或暂时关闭 VPN 后重试。\n2. 检查电脑网络连接是否正常。`
+    );
   }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error('DeepSeek API 未返回有效内容');
-  }
-
-  return content;
 }

@@ -8,9 +8,11 @@ import {
   AlertCircle,
   FileText,
   Clock,
+  Eye,
 } from 'lucide-react';
 import { Report, AppConfig } from '../types';
 import { formatBeijingDateTime } from '../lib/dateUtils';
+import { MarkdownView } from './MarkdownView';
 
 interface ReportDrawerProps {
   isOpen: boolean;
@@ -35,6 +37,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
   const [reportType, setReportType] = useState<'weekly' | 'monthly'>('weekly');
   const [selectedArchiveReport, setSelectedArchiveReport] = useState<Report | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showRawMarkdown, setShowRawMarkdown] = useState(false);
 
   if (!isOpen) return null;
 
@@ -185,22 +188,39 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
               </div>
 
               {selectedArchiveReport && (
-                <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E8DFD1]">
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E8DFD1]">
+                <div className="bg-white p-5 rounded-2xl border border-[#E8DFD1] shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E8DFD1]">
                     <span className="text-xs font-semibold text-[#58544E] font-mono">
                       归档时间: {formatBeijingDateTime(selectedArchiveReport.createdAt)}
                     </span>
-                    <button
-                      onClick={handleCopy}
-                      className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-white border border-[#E8DFD1] rounded-lg text-[#38332B] hover:text-[#C97B63] shadow-2xs"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? '已复制' : '复制 Markdown'}</span>
-                    </button>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowRawMarkdown(!showRawMarkdown)}
+                        className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-[#FAF7F2] border border-[#E8DFD1] hover:border-[#C97B63] rounded-lg text-[#58544E] hover:text-[#C97B63] shadow-2xs transition-colors"
+                        title={showRawMarkdown ? '切换为渲染视图' : '查看 Markdown 源码'}
+                      >
+                        {showRawMarkdown ? <Eye className="w-3.5 h-3.5 text-[#C97B63]" /> : <FileText className="w-3.5 h-3.5" />}
+                        <span>{showRawMarkdown ? '渲染视图' : '源码'}</span>
+                      </button>
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-white border border-[#E8DFD1] hover:border-[#C97B63] rounded-lg text-[#38332B] hover:text-[#C97B63] shadow-2xs transition-colors"
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copied ? '已复制' : '复制 Markdown'}</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="prose prose-sm max-w-none text-[#38332B] whitespace-pre-wrap font-sans text-xs leading-relaxed">
-                    {selectedArchiveReport.content}
-                  </div>
+                  {showRawMarkdown ? (
+                    <pre className="p-4 bg-[#FAF7F2] rounded-xl border border-[#E8DFD1] text-xs leading-relaxed text-[#38332B] font-mono whitespace-pre-wrap select-text overflow-x-auto">
+                      {selectedArchiveReport.content}
+                    </pre>
+                  ) : (
+                    <div className="p-1">
+                      <MarkdownView content={selectedArchiveReport.content} />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -221,19 +241,36 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                       <Clock className="w-3.5 h-3.5 text-[#C97B63]" />
                       <span>生成于 {formatBeijingDateTime(activeReport.createdAt)}</span>
                     </div>
-                    <button
-                      onClick={handleCopy}
-                      className="flex items-center space-x-1 px-3 py-1 bg-white border border-[#E8DFD1] hover:border-[#C97B63] text-[#38332B] hover:text-[#C97B63] font-medium rounded-lg shadow-2xs transition-colors"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? '已复制' : '复制 Markdown'}</span>
-                    </button>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowRawMarkdown(!showRawMarkdown)}
+                        className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-white border border-[#E8DFD1] hover:border-[#C97B63] rounded-lg text-[#58544E] hover:text-[#C97B63] shadow-2xs transition-colors"
+                        title={showRawMarkdown ? '切换为渲染视图' : '查看 Markdown 源码'}
+                      >
+                        {showRawMarkdown ? <Eye className="w-3.5 h-3.5 text-[#C97B63]" /> : <FileText className="w-3.5 h-3.5" />}
+                        <span>{showRawMarkdown ? '渲染视图' : '源码'}</span>
+                      </button>
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center space-x-1 px-3 py-1 bg-white border border-[#E8DFD1] hover:border-[#C97B63] text-[#38332B] hover:text-[#C97B63] font-medium rounded-lg shadow-2xs transition-colors"
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5 text-[#5C6B50]" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copied ? '已复制' : '复制 Markdown'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Rendered Markdown Content */}
-                  <div className="p-6 bg-[#FAF7F2]/60 rounded-2xl border border-[#E8DFD1] text-xs leading-relaxed text-[#38332B] font-sans whitespace-pre-wrap select-text">
-                    {activeReport.content}
-                  </div>
+                  {showRawMarkdown ? (
+                    <pre className="p-5 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1] text-xs leading-relaxed text-[#38332B] font-mono whitespace-pre-wrap select-text overflow-x-auto">
+                      {activeReport.content}
+                    </pre>
+                  ) : (
+                    <div className="p-6 bg-white rounded-2xl border border-[#E8DFD1] shadow-2xs">
+                      <MarkdownView content={activeReport.content} />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[#A4A09A]">

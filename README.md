@@ -34,22 +34,33 @@
 ### 2. 🏷️ 彩色分类与习惯标签
 事项不再是杂乱无章的纯文本。每条记录均可绑定色彩分明的分类胶囊标：
 - **开箱预置**：`工作`、`学习`、`健身`、`日常`、`休息`
-- **高度自定义**：支持随时在标签管理中新建个性化标签、挑选调色盘配色或自定义色值
+- **高度自定义**：支持随时在标签管理中新建/重命名标签、挑选调色盘配色，以及**上下拖拽/按钮调整标签展示顺序**
 
 ### 3. 🎭 心情选择与每日随想日记
 - **状态与心情记录**：点击心情胶囊唤起精致下拉列表，图文并茂展示 Emoji 与中文状态标签（⚡高效、💪活力、🧘平静、☕专注、🎉愉快、🔥忙碌、😴疲惫、🌧️低落），一键选定或切换当天状态。
 - **今日随想日记**：每列底部常驻日记栏，支持快速记下闪念；点击一键放大进入全屏/弹窗**沉浸式专注长文写作模式**，并支持对照今日已完成的足迹进行深度复盘。
 
-### 4. 🤖 DeepSeek 驱动的极简周报/月报
-拒绝空话套话，让 AI 成为你的客观复盘秘书：
+### 4. 🤖 DeepSeek 驱动的极简周报 / 月报
+拒绝空话套话，让 AI 成为你的客观复盘秘书（周报与月报完全独立生成与归档，支持精美 Markdown 渲染视图与源码一键切换）：
 - 🎯 **核心成果进展**：按标签分类（如工作、学习等），提炼 2~4 条最重要的核心成果与进展。
 - 💪 **习惯与成长**：提炼健身频次、学习收获与生活规律。
-- 🧘 **节奏洞察**：根据一周的心情分布与日记，输出 1~2 句务实的心理与精力状态反馈。
-- 🚀 **下周重点建议**：根据未尽事宜与工作流给出高价值推进建议。
-- 📋 **一键复制 Markdown**：格式干净整洁，随时粘贴至周报邮件、工作群或个人知识库。
+- 🤖 **AI 模型用量与花费**：自动关联当周/当月统计的真实算力数据，总结总花费、总 Token 与调用次数、缓存命中率、主力模型分布及消耗峰值日。
+- 🧘 **节奏洞察**：结合心情分布、日记与工作/AI 投入强度，输出务实的心理与精力状态反馈。
+- 🚀 **下周期重点建议**：根据未尽事宜与工作流给出高价值推进建议，支持一键复制 Markdown。
 
-### 5. 🔒 100% 本地隐私安全承诺
-- **数据完全本地化**：所有事项记录、随想与报告均保存在项目本地 SQLite 数据库（`data/diary.db`）中，**绝对不上云**。
+### 5. 📊 每日 AI 模型 Token 与花费统计
+专为高频使用 AI 编程助手的开发者打造，实时掌握算力投入与成本结构：
+- **直读 Vorssaint 缓存**：原生解析本机 `~/Library/Caches/com.vorssaint.utils/AgentUsage/agent-usage.bin`（`VAUA v4`），聚合 Claude、Codex、Gemini、Copilot 等多模型用量与 API 价值。
+- **北京时间归集 & 永久留存**：统一按北京时间（`UTC+8`）精确划分每日边界，并自动同步沉淀至本地 SQLite（`data/diary.db`），突破 91 天缓存滚动窗口限制、防止历史统计丢失。
+- **纯 SVG 交互式图表看板**：
+  - 顶部 KPI 概览：今日消耗、周期总花费与日均、周期总 Token、缓存命中率与节省金额。
+  - **每日模型消耗堆叠柱状图**：一键切换「花费 (`$`)」与「Token (`K/M`)」，支持悬停明细提示、图例单模型高亮、点击柱体下钻单日拆分。
+  - **每日总量趋势折线图**：支持「双轴对比 / 仅花费 / 仅 Token」切换，自动标注区间花费与 Token 峰值日期。
+  - 支持 `7 天 / 14 天 / 30 天 / 90 天 / 自定义月份` 筛选与手动刷新。
+
+### 6. 🔒 100% 本地隐私安全与时区隔离
+- **数据完全本地化**：所有事项记录、随想、报告与 AI 用量均保存在项目本地 SQLite 数据库（`data/diary.db`）中，**绝对不上云**。
+- **应用内独立东八区时区**：无论电脑当前位于任何系统时区，Diary 仅在自身进程内隔离锁定北京时间（`Asia/Shanghai`），既确保每日记录与用量口径准确，又不修改系统设置、也不被其他软件读取感知。
 - **严格 Git 隔离**：内置强力 `.gitignore`，自动隔离 `data/` 数据库文件与 `.env` 配置文件，开源推送到 GitHub 时绝无隐私泄露之忧。
 
 ---
@@ -57,7 +68,16 @@
 ## 🖥️ 应用界面预览
 
 <p align="center">
-  <img src="assets/preview.png" alt="Diary 界面预览" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);" />
+  <img src="assets/preview.png" alt="Diary 主看板界面预览" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);" />
+</p>
+
+<br />
+
+<p align="center">
+  <strong>每日 AI 模型 Token 与花费统计看板</strong>
+</p>
+<p align="center">
+  <img src="assets/ai-usage-preview.jpg" alt="Diary AI 模型 Token 与花费统计预览" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);" />
 </p>
 
 ---
@@ -114,32 +134,41 @@ npm run dist
 
 ```
 diary/
-├── .env.example               # 开源环境变量配置模版
-├── .gitignore                  # 严密隐私隔离配置（隔离数据与密钥）
-├── data/                      # 本地 SQLite 数据库目录（git 忽略）
-│   └── diary.db               # 你的个人手帐 SQLite 数据库
-├── backups/                   # 一键导出备份目录（git 忽略）
-├── electron/                  # Electron 桌面端主进程
-│   ├── main.ts                # 主窗口创建与生命周期调度
-│   ├── preload.ts             # 安全类型 IPC 桥接
+├── .env.example                      # 开源环境变量配置模版
+├── .gitignore                        # 严密隐私隔离配置（隔离数据与密钥）
+├── assets/                           # 图标与应用预览截图资源
+├── data/                             # 本地 SQLite 数据库目录（git 忽略）
+│   └── diary.db                      # 你的个人手帐与 AI 用量 SQLite 数据库
+├── backups/                          # 一键导出备份目录（git 忽略）
+├── electron/                         # Electron 桌面端主进程
+│   ├── main.ts                       # 主窗口创建、时区隔离与 IPC 注册
+│   ├── preload.ts                    # 安全类型 IPC 桥接
 │   └── services/
-│       ├── db.ts              # 本地 SQLite 封装与事务存储
-│       └── deepseek.ts        # DeepSeek API 请求与周报引擎
-├── src/                       # React 渲染进程（UI 前端）
+│       ├── db.ts                     # 本地 SQLite 封装与事务存储
+│       ├── deepseek.ts               # DeepSeek API 请求与周报/月报引擎
+│       └── vorssaintUsage.ts         # Vorssaint 二进制用量解码与北京时间归集
+├── src/                              # React 渲染进程（UI 前端）
 │   ├── components/
-│   │   ├── Navbar.tsx         # 顶部周导航与操作栏
-│   │   ├── WeekView.tsx       # 7 天周视图平铺看板
-│   │   ├── DayColumn.tsx      # 单天足迹列（心情、时段、随想）
-│   │   ├── SlotCard.tsx       # 早中晚已做事项记录卡片（Done-Log）
-│   │   ├── DiaryModal.tsx     # 沉浸式深度日记写作弹窗
-│   │   ├── ReportDrawer.tsx   # DeepSeek 周报/月报侧边抽屉
-│   │   ├── TagManagerModal.tsx# 项目与习惯彩色标签管理
-│   │   └── SettingsModal.tsx  # 设置与数据一键导出 (JSON/MD)
-│   ├── lib/                   # 工具函数（日期算法、默认标签等）
-│   ├── types/                 # TypeScript 强类型定义
-│   ├── App.tsx                # 应用核心状态汇聚
-│   ├── main.tsx               # 前端入口
-│   └── index.css              # 全局样式与 Tailwind
+│   │   ├── ai-usage/
+│   │   │   ├── AIStackedBarChart.tsx # 纯 SVG 每日分模型堆叠柱状图
+│   │   │   └── AITrendLineChart.tsx  # 纯 SVG 每日双轴总量趋势折线图
+│   │   ├── AIUsageModal.tsx          # AI 模型 Token 与花费统计看板弹窗
+│   │   ├── Navbar.tsx                # 顶部周导航与操作栏
+│   │   ├── WeekView.tsx              # 7 天周视图平铺看板
+│   │   ├── DayColumn.tsx             # 单天足迹列（心情、时段、随想）
+│   │   ├── SlotCard.tsx              # 早中晚已做事项记录卡片（Done-Log）
+│   │   ├── DiaryModal.tsx            # 沉浸式深度日记写作弹窗
+│   │   ├── MarkdownView.tsx          # 报告 Markdown 渲染视图
+│   │   ├── MonthPickerModal.tsx      # 月历与周跳转选择器
+│   │   ├── ReportDrawer.tsx          # DeepSeek 周报/月报侧边抽屉
+│   │   ├── TagManagerModal.tsx       # 项目与习惯彩色标签管理与排序
+│   │   └── SettingsModal.tsx         # 设置与数据一键导出 (JSON/MD)
+│   ├── lib/                          # 工具函数（北京时间算法、图表格式化等）
+│   ├── services/                     # DeepSeek Prompt 构造与前端存储适配
+│   ├── types/                        # TypeScript 强类型定义
+│   ├── App.tsx                       # 应用核心状态汇聚
+│   ├── main.tsx                      # 前端入口
+│   └── index.css                     # 全局样式与 Tailwind
 ├── package.json
 ├── tailwind.config.js
 ├── tsconfig.json

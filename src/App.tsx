@@ -17,6 +17,7 @@ import { ReportDrawer } from './components/ReportDrawer';
 import { TagManagerModal } from './components/TagManagerModal';
 import { SettingsModal } from './components/SettingsModal';
 import { MonthPickerModal } from './components/MonthPickerModal';
+import { AIUsageModal } from './components/AIUsageModal';
 
 export const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(() => getBeijingNow());
@@ -34,6 +35,7 @@ export const App: React.FC = () => {
   // Modals
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
+  const [isAIUsageOpen, setIsAIUsageOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [diaryModalDate, setDiaryModalDate] = useState<string | null>(null);
@@ -396,6 +398,7 @@ export const App: React.FC = () => {
         onToday={handleToday}
         onOpenMonthPicker={() => setIsMonthPickerOpen(true)}
         onOpenReports={() => setIsReportsOpen(true)}
+        onOpenAIUsage={() => setIsAIUsageOpen(true)}
         onOpenTags={() => setIsTagsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         totalRecordsCount={totalRecordsCount}
@@ -462,6 +465,12 @@ export const App: React.FC = () => {
         currentDate={currentDate}
         onClose={() => setIsMonthPickerOpen(false)}
         onSelectWeek={(targetDate) => setCurrentDate(targetDate)}
+      />
+
+      {/* AI Model Token & Cost Stats Modal */}
+      <AIUsageModal
+        isOpen={isAIUsageOpen}
+        onClose={() => setIsAIUsageOpen(false)}
       />
     </div>
   );

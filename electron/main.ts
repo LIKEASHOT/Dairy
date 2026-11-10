@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import * as db from './services/db';
 import { loadEnvConfig, generateReportViaDeepSeek } from './services/deepseek';
+import { syncAndQueryAiUsage } from './services/vorssaintUsage';
 
 // Global error handlers
 process.on('uncaughtException', (err) => {
@@ -97,6 +98,9 @@ function registerIpcHandlers() {
   ipcMain.handle('app:getConfig', async () => loadEnvConfig());
   ipcMain.handle('ai:generateReport', async (_, params) => generateReportViaDeepSeek(params));
 
+  // AI Model Token & Cost Usage (Vorssaint Cache -> diary.db)
+  ipcMain.handle('aiUsage:syncAndQuery', async (_, params) => syncAndQueryAiUsage(params));
+
   // Export
   ipcMain.handle('app:exportData', async (_, format) => db.exportData(format));
 }
@@ -123,6 +127,10 @@ app.whenReady().then(async () => {
 
   try {
     await db.initDb();
+    // Silently snapshot Vorssaint usage cache into diary.db on launch to safeguard >91d history
+    syncAndQueryAiUsage({ days: 7 }).catch((err) => {
+      console.warn('[Diary] Initial Vorssaint sync skipped:', err);
+    });
   } catch (e) {
     console.error('[Diary] Error initializing database:', e);
   }

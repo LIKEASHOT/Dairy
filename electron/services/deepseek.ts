@@ -2,10 +2,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { net } from 'electron';
-import { AppConfig, DayData, Tag } from '../../src/types';
+import { AppConfig, AIUsageQueryResult, DayData, Tag } from '../../src/types';
 import { buildDeepSeekPrompt, requestDeepSeek } from '../../src/services/deepseek';
 
 import { getProjectRoot } from './db';
+import { syncAndQueryAiUsage } from './vorssaintUsage';
 
 export function loadEnvConfig(): AppConfig {
   const rootDir = getProjectRoot();
@@ -42,12 +43,23 @@ export async function generateReportViaDeepSeek(params: {
     throw new Error('未配置有效 DEEPSEEK_API_KEY。请在项目根目录 .env 文件中填入你的 API Key');
   }
 
+  let aiUsage: AIUsageQueryResult | null = null;
+  try {
+    aiUsage = await syncAndQueryAiUsage({
+      startDate: params.startDate,
+      endDate: params.endDate,
+    });
+  } catch (e) {
+    console.warn('[Diary] Failed to load AI usage for report prompt:', e);
+  }
+
   const { system, user } = buildDeepSeekPrompt(
     params.type,
     params.startDate,
     params.endDate,
     params.daysData,
-    params.tags
+    params.tags,
+    aiUsage
   );
 
   const fetchImpl = typeof net !== 'undefined' && typeof net.fetch === 'function' ? (net.fetch as any) : fetch;

@@ -1,7 +1,7 @@
 import initSqlJs, { Database } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
-import { Tag, DayData, ActivityRecord, SlotPeriod, Report } from '../../src/types';
+import { Tag, DayData, ActivityRecord, SlotPeriod, Report, AIDailyModelUsage } from '../../src/types';
 import { DEFAULT_TAGS } from '../../src/lib/constants';
 
 export function getProjectRoot(): string {
@@ -91,6 +91,27 @@ export async function initDb(): Promise<Database> {
       createdAt TEXT NOT NULL,
       UNIQUE(type, targetDate)
     );
+
+    CREATE TABLE IF NOT EXISTS ai_daily_usage (
+      date TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      requests INTEGER DEFAULT 0,
+      input_tokens INTEGER DEFAULT 0,
+      cache_write_tokens INTEGER DEFAULT 0,
+      cache_read_tokens INTEGER DEFAULT 0,
+      output_tokens INTEGER DEFAULT 0,
+      reasoning_tokens INTEGER DEFAULT 0,
+      total_tokens INTEGER DEFAULT 0,
+      cost_usd REAL DEFAULT 0,
+      savings_usd REAL DEFAULT 0,
+      unpriced_count INTEGER DEFAULT 0,
+      updated_at INTEGER NOT NULL,
+      PRIMARY KEY (date, provider, model)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ai_daily_usage_date ON ai_daily_usage(date);
   `);
 
   // Seed default tags only if database is completely empty
@@ -460,4 +481,104 @@ export async function exportData(format: 'json' | 'markdown'): Promise<{ success
     fs.writeFileSync(filePath, md, 'utf-8');
     return { success: true, filePath, content: md };
   }
+}
+
+export async function syncAiDailyUsage(rows: AIDailyModelUsage[], seenDates: string[]): Promise<number> {
+  if (seenDates.length === 0) return 0;
+  const db = await initDb();
+
+  db.run('BEGIN TRANSACTION');
+  try {
+    // 仅清理本次 .bin 中覆盖到的日期旧明细，保留早于 91 天窗口的历史数据不被删除
+    const delStmt = db.prepare('DELETE FROM ai_daily_usage WHERE date = ?');
+    for (const date of seenDates) {
+      delStmt.run([date]);
+    }
+    delStmt.free();
+
+    const insertStmt = db.prepare(`
+      INSERT OR REPLACE INTO ai_daily_usage (
+        date, provider, model, display_name,
+        requests, input_tokens, cache_write_tokens, cache_read_tokens,
+        output_tokens, reasoning_tokens, total_tokens,
+        cost_usd, savings_usd, unpriced_count, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const row of rows) {
+      insertStmt.run([
+        row.date,
+        row.provider,
+        row.model,
+        row.displayName,
+        row.requests,
+        row.inputTokens,
+        row.cacheWriteTokens,
+        row.cacheReadTokens,
+        row.outputTokens,
+        row.reasoningTokens,
+        row.totalTokens,
+        row.costUsd,
+        row.savingsUsd,
+        row.unpricedCount,
+        row.updatedAt,
+      ]);
+    }
+    insertStmt.free();
+
+    db.run('COMMIT');
+  } catch (err) {
+    db.run('ROLLBACK');
+    throw err;
+  }
+
+  persistDb();
+  return seenDates.length;
+}
+
+export async function queryAiDailyUsage(startDate: string, endDate: string): Promise<AIDailyModelUsage[]> {
+  const db = await initDb();
+  const res = db.exec(
+    `SELECT
+      date, provider, model, display_name,
+      requests, input_tokens, cache_write_tokens, cache_read_tokens,
+      output_tokens, reasoning_tokens, total_tokens,
+      cost_usd, savings_usd, unpriced_count, updated_at
+     FROM ai_daily_usage
+     WHERE date >= ? AND date <= ?
+     ORDER BY date ASC, cost_usd DESC, total_tokens DESC`,
+    [startDate, endDate]
+  );
+
+  if (!res[0]?.values) return [];
+  return res[0].values.map((row) => ({
+    date: row[0] as string,
+    provider: row[1] as string,
+    model: row[2] as string,
+    displayName: row[3] as string,
+    requests: Number(row[4] || 0),
+    inputTokens: Number(row[5] || 0),
+    cacheWriteTokens: Number(row[6] || 0),
+    cacheReadTokens: Number(row[7] || 0),
+    outputTokens: Number(row[8] || 0),
+    reasoningTokens: Number(row[9] || 0),
+    totalTokens: Number(row[10] || 0),
+    costUsd: Number(row[11] || 0),
+    savingsUsd: Number(row[12] || 0),
+    unpricedCount: Number(row[13] || 0),
+    updatedAt: Number(row[14] || 0),
+  }));
+}
+
+export async function getAiUsageDateBounds(): Promise<{ oldestDate: string | null; newestDate: string | null }> {
+  const db = await initDb();
+  const res = db.exec('SELECT MIN(date), MAX(date) FROM ai_daily_usage');
+  if (!res[0]?.values?.[0]) {
+    return { oldestDate: null, newestDate: null };
+  }
+  const [oldest, newest] = res[0].values[0];
+  return {
+    oldestDate: (oldest as string) || null,
+    newestDate: (newest as string) || null,
+  };
 }

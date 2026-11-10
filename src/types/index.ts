@@ -60,3 +60,93 @@ export interface AppConfig {
   deepseekBaseUrl?: string;
   deepseekModel?: string;
 }
+
+export type AIProvider = 'claude' | 'codex' | 'gemini' | 'copilot' | 'opencode' | string;
+
+export interface AIDailyModelUsage {
+  date: string; // YYYY-MM-DD (Asia/Shanghai)
+  provider: AIProvider;
+  model: string;
+  displayName: string;
+  requests: number;
+  inputTokens: number;
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  savingsUsd: number;
+  unpricedCount: number;
+  updatedAt: number;
+}
+
+export interface AIUsageSummary {
+  requests: number;
+  inputTokens: number;
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  savingsUsd: number;
+  unpricedCount: number;
+  cacheHitRate: number;
+}
+
+export interface AIDailyAggregate {
+  date: string;
+  requests: number;
+  inputTokens: number;
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  savingsUsd: number;
+  unpricedCount: number;
+  models: AIDailyModelUsage[];
+}
+
+export interface AIModelAggregate {
+  provider: AIProvider;
+  model: string;
+  displayName: string;
+  requests: number;
+  inputTokens: number;
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  savingsUsd: number;
+  unpricedCount: number;
+  costShare: number;
+  tokenShare: number;
+}
+
+export interface AIUsageQueryParams {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface AIUsageQueryResult {
+  startDate: string;
+  endDate: string;
+  todayDate: string;
+  todaySummary: AIUsageSummary;
+  periodSummary: AIUsageSummary;
+  dailyData: AIDailyAggregate[];
+  modelBreakdown: AIModelAggregate[];
+  binPath: string;
+  binExists: boolean;
+  binUpdatedAt: number | null;
+  syncedDaysCount: number;
+  oldestStoredDate: string | null;
+  newestStoredDate: string | null;
+  warning?: string;
+}

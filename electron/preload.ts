@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { Tag, DayData, ActivityRecord, SlotPeriod, Report } from '../src/types';
+import {
+  Tag,
+  DayData,
+  ActivityRecord,
+  SlotPeriod,
+  Report,
+  AIUsageQueryParams,
+  AIUsageQueryResult,
+} from '../src/types';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Tags
@@ -37,6 +45,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     daysData: DayData[];
     tags: Tag[];
   }): Promise<string> => ipcRenderer.invoke('ai:generateReport', params),
+
+  // AI Model Token & Cost Usage
+  syncAndQueryAiUsage: (params?: AIUsageQueryParams): Promise<AIUsageQueryResult> =>
+    ipcRenderer.invoke('aiUsage:syncAndQuery', params),
 
   // Export
   exportData: (format: 'json' | 'markdown') => ipcRenderer.invoke('app:exportData', format),

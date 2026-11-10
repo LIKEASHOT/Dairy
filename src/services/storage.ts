@@ -1,6 +1,16 @@
-import { Tag, DayData, ActivityRecord, SlotPeriod, Report, AppConfig } from '../types';
+import {
+  Tag,
+  DayData,
+  ActivityRecord,
+  SlotPeriod,
+  Report,
+  AppConfig,
+  AIUsageQueryParams,
+  AIUsageQueryResult,
+} from '../types';
 import { DEFAULT_TAGS } from '../lib/constants';
 import { generateId } from '../lib/utils';
+import { getBeijingNow, formatDate } from '../lib/dateUtils';
 
 declare global {
   interface Window {
@@ -36,6 +46,7 @@ declare global {
         daysData: DayData[];
         tags: Tag[];
       }) => Promise<string>;
+      syncAndQueryAiUsage: (params?: AIUsageQueryParams) => Promise<AIUsageQueryResult>;
       exportData: (format: 'json' | 'markdown') => Promise<{ success: boolean; filePath?: string; content?: string }>;
     };
   }
@@ -304,6 +315,47 @@ export const Storage = {
   getConfig: async (): Promise<AppConfig> => {
     if (window.electronAPI) return window.electronAPI.getConfig();
     return localFallback.getConfig();
+  },
+
+  syncAndQueryAiUsage: async (params?: AIUsageQueryParams): Promise<AIUsageQueryResult> => {
+    if (window.electronAPI) {
+      if (typeof window.electronAPI.syncAndQueryAiUsage !== 'function') {
+        throw new Error(
+          '当前运行的桌面端主进程仍是旧版本（Cmd+R 仅刷新页面，不会重载主进程/Preload）。请按 Cmd+Q 完全退出 Diary 并重新打开即可拉取数据。'
+        );
+      }
+      return window.electronAPI.syncAndQueryAiUsage(params);
+    }
+    const todayDate = formatDate(getBeijingNow());
+    const emptySummary = {
+      requests: 0,
+      inputTokens: 0,
+      cacheWriteTokens: 0,
+      cacheReadTokens: 0,
+      outputTokens: 0,
+      reasoningTokens: 0,
+      totalTokens: 0,
+      costUsd: 0,
+      savingsUsd: 0,
+      unpricedCount: 0,
+      cacheHitRate: 0,
+    };
+    return {
+      startDate: params?.startDate || todayDate,
+      endDate: params?.endDate || todayDate,
+      todayDate,
+      todaySummary: emptySummary,
+      periodSummary: emptySummary,
+      dailyData: [],
+      modelBreakdown: [],
+      binPath: '',
+      binExists: false,
+      binUpdatedAt: null,
+      syncedDaysCount: 0,
+      oldestStoredDate: null,
+      newestStoredDate: null,
+      warning: '当前为浏览器预览模式，仅桌面端（Electron）可读取本机 Vorssaint 用量缓存并写入 SQLite。',
+    };
   },
 
   exportData: async (format: 'json' | 'markdown') => {

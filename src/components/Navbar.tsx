@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Calendar,
   Sparkles,
+  BarChart3,
   Tags,
   Settings,
   BookOpen,
@@ -17,6 +18,7 @@ interface NavbarProps {
   onToday: () => void;
   onOpenMonthPicker: () => void;
   onOpenReports: () => void;
+  onOpenAIUsage: () => void;
   onOpenTags: () => void;
   onOpenSettings: () => void;
   totalRecordsCount: number;
@@ -29,6 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToday,
   onOpenMonthPicker,
   onOpenReports,
+  onOpenAIUsage,
   onOpenTags,
   onOpenSettings,
   totalRecordsCount,
@@ -115,6 +118,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Sparkles className="w-3.5 h-3.5 text-[#C97B63]" />
           <span>周报与总结</span>
+        </button>
+
+        {/* AI Usage Stats Button */}
+        <button
+          onClick={onOpenAIUsage}
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#F3EBDD]/75 hover:bg-[#ECE0CD] text-[#58544E] hover:text-[#38332B] text-xs font-medium border border-[#E8DFD1] transition-all shadow-2xs"
+          title="每日 AI 模型 Token 与花费统计 (Vorssaint)"
+        >
+          <BarChart3 className="w-3.5 h-3.5 text-[#C97B63]" />
+          <span>AI 统计</span>
         </button>
 
         {/* Tags Manager */}

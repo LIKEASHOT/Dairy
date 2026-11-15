@@ -211,9 +211,9 @@ export const App: React.FC = () => {
 
   const handleToggleMood = async (date: string, moodId: string) => {
     const currentMoods = daysData[date]?.moods || [];
-    const newMoods = currentMoods.includes(moodId)
-      ? currentMoods.filter((m) => m !== moodId)
-      : [...currentMoods, moodId];
+    const currentMoodId = currentMoods[0] || null;
+    // 如果点击的是当前已选中的心情，则取消选择（清除）；否则直接替换顶掉之前的心情
+    const newMoods = currentMoodId === moodId ? [] : [moodId];
 
     await Storage.saveMoods(date, newMoods);
     setDaysData((prev) => {

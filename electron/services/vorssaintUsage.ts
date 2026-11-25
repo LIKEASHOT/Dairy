@@ -16,9 +16,236 @@ export const VORSSAINT_USAGE_BIN_PATH = path.join(
   'Library/Caches/com.vorssaint.utils/AgentUsage/agent-usage.bin'
 );
 
+const VORSSAINT_PRICE_PATHS = [
+  path.join(os.homedir(), 'Library/Application Support/com.vorssaint.utils/agent-prices.json'),
+  '/Applications/Vorssaint.app/Contents/Resources/agent-prices.json',
+];
+
 const APPLE_REFERENCE_EPOCH_SEC = 978307200; // 2001-01-01T00:00:00Z
 const EXPECTED_MAGIC = 'VAUA';
 const SUPPORTED_FORMAT = 4;
+
+interface LongContextSpec {
+  above: number;
+  inputMultiplier: number;
+  outputMultiplier: number;
+}
+
+interface ModelPriceSpec {
+  id: string;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  cacheWriteLong: number;
+  fastMultiplier: number;
+  longContext?: LongContextSpec;
+}
+
+interface LoadedPricingTable {
+  claude: ModelPriceSpec[];
+  codex: ModelPriceSpec[];
+  webSearch: number;
+  usOnlyMultiplier: number;
+}
+
+// 内置兜底定价（单位：USD / 1M tokens），覆盖上游 tieredModels 迁移导致旧版 Vorssaint 未定价的型号
+const BUILTIN_CODEX_PRICES: ModelPriceSpec[] = [
+  {
+    id: 'gpt-6.2-sol',
+    input: 2,
+    output: 10,
+    cacheRead: 0.1,
+    cacheWrite: 2.5,
+    cacheWriteLong: 5,
+    fastMultiplier: 2,
+    longContext: { above: 272000, inputMultiplier: 2, outputMultiplier: 1.5 },
+  },
+  {
+    id: 'gpt-6.2-astra',
+    input: 8,
+    output: 40,
+    cacheRead: 0.4,
+    cacheWrite: 10,
+    cacheWriteLong: 20,
+    fastMultiplier: 2,
+    longContext: { above: 272000, inputMultiplier: 2, outputMultiplier: 1.5 },
+  },
+  {
+    id: 'gpt-6.2-astra-law',
+    input: 8,
+    output: 40,
+    cacheRead: 0.4,
+    cacheWrite: 10,
+    cacheWriteLong: 20,
+    fastMultiplier: 1,
+    longContext: { above: 272000, inputMultiplier: 2, outputMultiplier: 1.5 },
+  },
+];
+
+const MODEL_SIBLING_TOKENS = ['-mini', '-nano', '-pro', '-max', '-spark', '-fast', '-cyber', '-preview', '-search'];
+
+function parsePriceEntries(raw: unknown): ModelPriceSpec[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ModelPriceSpec[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const obj = item as Record<string, unknown>;
+    const id = typeof obj.id === 'string' ? obj.id.trim().toLowerCase() : '';
+    const input = typeof obj.input === 'number' && Number.isFinite(obj.input) ? obj.input : null;
+    const output = typeof obj.output === 'number' && Number.isFinite(obj.output) ? obj.output : null;
+    const cacheRead = typeof obj.cacheRead === 'number' && Number.isFinite(obj.cacheRead) ? obj.cacheRead : null;
+    if (!id || input === null || output === null || cacheRead === null) continue;
+    const cacheWrite = typeof obj.cacheWrite === 'number' && Number.isFinite(obj.cacheWrite) ? obj.cacheWrite : input;
+    const cacheWriteLong =
+      typeof obj.cacheWriteLong === 'number' && Number.isFinite(obj.cacheWriteLong) ? obj.cacheWriteLong : cacheWrite;
+    const fastMultiplier =
+      typeof obj.fastMultiplier === 'number' && Number.isFinite(obj.fastMultiplier) ? obj.fastMultiplier : 1;
+    let longContext: LongContextSpec | undefined;
+    if (obj.longContext && typeof obj.longContext === 'object') {
+      const lc = obj.longContext as Record<string, unknown>;
+      if (
+        typeof lc.above === 'number' &&
+        typeof lc.inputMultiplier === 'number' &&
+        typeof lc.outputMultiplier === 'number'
+      ) {
+        longContext = {
+          above: lc.above,
+          inputMultiplier: lc.inputMultiplier,
+          outputMultiplier: lc.outputMultiplier,
+        };
+      }
+    }
+    out.push({ id, input, output, cacheRead, cacheWrite, cacheWriteLong, fastMultiplier, longContext });
+  }
+  return out;
+}
+
+function loadFallbackPricingTable(): LoadedPricingTable {
+  const claudeMap = new Map<string, ModelPriceSpec>();
+  const codexMap = new Map<string, ModelPriceSpec>();
+  let webSearch = 0.01;
+  let usOnlyMultiplier = 1.1;
+
+  for (const spec of BUILTIN_CODEX_PRICES) {
+    codexMap.set(spec.id, spec);
+  }
+
+  // 先加载内置包，再加载用户目录最新下载表（覆盖旧值），同时兼容 models 与 tieredModels
+  const pathsOldestFirst = [...VORSSAINT_PRICE_PATHS].reverse();
+  for (const filePath of pathsOldestFirst) {
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const json = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, any>;
+      if (json?.claude && typeof json.claude === 'object') {
+        if (typeof json.claude.webSearch === 'number') webSearch = json.claude.webSearch;
+        if (typeof json.claude.usOnlyMultiplier === 'number') usOnlyMultiplier = json.claude.usOnlyMultiplier;
+        for (const spec of [
+          ...parsePriceEntries(json.claude.models),
+          ...parsePriceEntries(json.claude.tieredModels),
+        ]) {
+          claudeMap.set(spec.id, spec);
+        }
+      }
+      if (json?.codex && typeof json.codex === 'object') {
+        for (const spec of [
+          ...parsePriceEntries(json.codex.models),
+          ...parsePriceEntries(json.codex.tieredModels),
+        ]) {
+          codexMap.set(spec.id, spec);
+        }
+      }
+    } catch {
+      // 忽略损坏或正在写入的价格表
+    }
+  }
+
+  return {
+    claude: Array.from(claudeMap.values()),
+    codex: Array.from(codexMap.values()),
+    webSearch,
+    usOnlyMultiplier,
+  };
+}
+
+function matchesModelFamily(id: string, family: string): boolean {
+  if (!id.startsWith(family)) return false;
+  const rest = id.slice(family.length);
+  if (!rest) return true;
+  const next = rest[0];
+  if (next !== '-' && next !== '_' && next !== ':') return false;
+  const numMatch = rest.slice(1).match(/^\d+/);
+  return !numMatch || numMatch[0].length >= 4;
+}
+
+function findFallbackModelPrice(rawModel: string, table: LoadedPricingTable): ModelPriceSpec | null {
+  const normalized = (rawModel || '').trim().toLowerCase().replace(/^(openai|anthropic)\//, '');
+  if (!normalized) return null;
+  const list = normalized.startsWith('claude-') ? table.claude : table.codex;
+  let best: ModelPriceSpec | null = null;
+  for (const item of list) {
+    if (matchesModelFamily(normalized, item.id)) {
+      if (!best || item.id.length > best.id.length) {
+        best = item;
+      }
+    }
+  }
+  if (!best) return null;
+  const rest = normalized.slice(best.id.length);
+  if (rest && MODEL_SIBLING_TOKENS.some((sib) => rest.includes(sib))) {
+    return null;
+  }
+  return best;
+}
+
+function estimateFallbackCost(
+  rawModel: string,
+  billable: {
+    input: number;
+    cacheWrite: number;
+    cacheRead: number;
+    output: number;
+    isAggregate: boolean;
+    longCacheWrite: number;
+    fast: boolean;
+    domestic: boolean;
+    webSearches: number;
+  },
+  table: LoadedPricingTable
+): { cost: number; savings: number } | null {
+  const totalTokens = billable.input + billable.cacheWrite + billable.cacheRead + billable.output;
+  if (totalTokens === 0 && billable.webSearches <= 0) {
+    return { cost: 0, savings: 0 };
+  }
+  const price = findFallbackModelPrice(rawModel, table);
+  if (!price) return null;
+
+  const longWrite = Math.min(Math.max(0, billable.longCacheWrite), billable.cacheWrite);
+  let multiplier = billable.fast ? price.fastMultiplier : 1;
+  if (billable.domestic) multiplier *= table.usOnlyMultiplier;
+  let inputRate = multiplier;
+  let outputRate = multiplier;
+
+  const promptTokens = billable.input + billable.cacheWrite + billable.cacheRead;
+  if (!billable.isAggregate && price.longContext && promptTokens > price.longContext.above) {
+    inputRate *= price.longContext.inputMultiplier;
+    outputRate *= price.longContext.outputMultiplier;
+  }
+
+  const cost =
+    (billable.input * price.input * inputRate +
+      (billable.cacheWrite - longWrite) * price.cacheWrite * inputRate +
+      longWrite * price.cacheWriteLong * inputRate +
+      billable.cacheRead * price.cacheRead * inputRate +
+      billable.output * price.output * outputRate) /
+      1_000_000 +
+    Math.max(0, billable.webSearches) * table.webSearch;
+
+  const savings =
+    (billable.cacheRead * Math.max(0, price.input - price.cacheRead) * inputRate) / 1_000_000;
+
+  return { cost, savings };
+}
 
 const beijingDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Shanghai',
@@ -271,6 +498,7 @@ export function parseVorssaintUsageBin(filePath: string = VORSSAINT_USAGE_BIN_PA
     }
 
     const nowMs = Date.now();
+    const pricingTable = loadFallbackPricingTable();
     const aggregateMap = new Map<string, AIDailyModelUsage>();
     const seenDateSet = new Set<string>();
 
@@ -291,18 +519,24 @@ export function parseVorssaintUsageBin(filePath: string = VORSSAINT_USAGE_BIN_PA
       const costUsd = hasCost ? readDouble() : null;
       const savingsUsd = readDouble();
 
+      let billableInput = input;
+      let billableCacheWrite = cacheWrite;
+      let billableCacheRead = cacheRead;
+      let billableOutput = output;
       const sameBillable = readBool();
       if (!sameBillable) {
-        for (let j = 0; j < 5; j++) {
-          readSigned();
-        }
+        billableInput = readSigned();
+        billableCacheWrite = readSigned();
+        billableCacheRead = readSigned();
+        billableOutput = readSigned();
+        readSigned(); // billableReasoning (already contained in billableOutput)
       }
 
-      readBool(); // isAggregate
-      readSigned(); // longCacheWrite
-      readBool(); // fast
-      readBool(); // domestic
-      readSigned(); // webSearches
+      const isAggregate = readBool();
+      const longCacheWrite = readSigned();
+      const fast = readBool();
+      const domestic = readBool();
+      const webSearches = readSigned();
       const sourcesCount = Number(readUnsigned());
       for (let j = 0; j < sourcesCount; j++) {
         readString();
@@ -355,12 +589,34 @@ export function parseVorssaintUsageBin(filePath: string = VORSSAINT_USAGE_BIN_PA
 
       if (hasCost && costUsd !== null && Number.isFinite(costUsd)) {
         entry.costUsd += costUsd;
+        if (Number.isFinite(savingsUsd)) {
+          entry.savingsUsd += Math.max(0, savingsUsd);
+        }
       } else {
-        entry.unpricedCount += 1;
-      }
-
-      if (Number.isFinite(savingsUsd)) {
-        entry.savingsUsd += Math.max(0, savingsUsd);
+        const fallback = estimateFallbackCost(
+          model,
+          {
+            input: Math.max(0, billableInput),
+            cacheWrite: Math.max(0, billableCacheWrite),
+            cacheRead: Math.max(0, billableCacheRead),
+            output: Math.max(0, billableOutput),
+            isAggregate,
+            longCacheWrite,
+            fast,
+            domestic,
+            webSearches,
+          },
+          pricingTable
+        );
+        if (fallback) {
+          entry.costUsd += fallback.cost;
+          entry.savingsUsd += Math.max(0, fallback.savings);
+        } else {
+          entry.unpricedCount += 1;
+          if (Number.isFinite(savingsUsd)) {
+            entry.savingsUsd += Math.max(0, savingsUsd);
+          }
+        }
       }
     }
 
